@@ -1,0 +1,3470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>SA Days Tracker</title>
+<meta name="theme-color" content="#00311f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SA Days">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --green-900:#00311f;
+    --green-700:#00693e;
+    --green-500:#0f8a55;
+    --green-100:#e4f2ea;
+    --gold-700:#c9930a;
+    --gold-500:#ffb81c;
+    --gold-100:#fff3d9;
+    --cream:#faf7ef;
+    --paper:#ffffff;
+    --ink:#17231d;
+    --ink-soft:#5c6b60;
+    --line:#e3ddc9;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    padding-bottom:60px;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 18px;}
+
+  header{
+    background:linear-gradient(180deg,var(--green-900),var(--green-700));
+    padding:30px 18px 0;
+    color:var(--cream);
+  }
+  header .inner{max-width:960px;margin:0 auto;}
+  .header-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .header-pdf-btn{
+    background:var(--gold-500);
+    color:var(--green-900);
+    border:none;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:12px;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    padding:10px 16px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    white-space:nowrap;
+    margin-top:2px;
+  }
+  .header-pdf-btn:hover{background:#e6a417;}
+  .header-pdf-btn:disabled{opacity:0.6;cursor:wait;}
+  .eyebrow{
+    font-family:'Roboto Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.12em;
+    color:var(--gold-500);
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:34px;
+    letter-spacing:0.01em;
+    margin:0 0 6px;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .title-edit-btn{
+    background:none;
+    border:none;
+    color:rgba(255,255,255,0.5);
+    font-size:16px;
+    cursor:pointer;
+    padding:2px 4px;
+    line-height:1;
+  }
+  .title-edit-btn:hover{color:var(--gold-500);}
+  .title-input{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:34px;
+    letter-spacing:0.01em;
+    color:#fff;
+    background:rgba(255,255,255,0.1);
+    border:1.5px solid var(--gold-500);
+    border-radius:var(--radius);
+    padding:2px 10px;
+    margin:0 0 6px;
+    width:100%;
+    max-width:440px;
+  }
+  .title-input:focus{outline:none;}
+  header p{
+    margin:0 0 22px;
+    font-size:13.5px;
+    color:#cfe4d7;
+    max-width:520px;
+    line-height:1.5;
+  }
+
+  nav.tabs{
+    display:flex;
+    gap:4px;
+    max-width:960px;
+    margin:0 auto;
+    padding:0 18px;
+  }
+  nav.tabs button{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    background:transparent;
+    border:none;
+    color:#bcd6c6;
+    padding:12px 18px 14px;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+  }
+  nav.tabs button.active{
+    color:#fff;
+    border-bottom:3px solid var(--gold-500);
+  }
+  nav.tabs button:hover:not(.active){color:#fff;}
+
+  main{padding-top:24px;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .panel{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-bottom:18px;
+  }
+
+  h2{
+    font-family:'Oswald',sans-serif;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    font-weight:600;
+    color:var(--green-700);
+    margin:0 0 16px;
+  }
+
+  /* Calendar */
+  .cal-toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .cal-nav{display:flex;align-items:center;gap:12px;}
+  .cal-nav button{
+    background:var(--green-100);
+    border:1px solid var(--green-700);
+    color:var(--green-700);
+    width:30px;height:30px;
+    cursor:pointer;
+    font-size:15px;
+    border-radius:var(--radius);
+  }
+  .cal-nav button:hover{background:var(--green-700);color:#fff;}
+  .cal-title{font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;letter-spacing:0.01em;}
+  .add-entry-btn{
+    background:var(--gold-500);
+    color:var(--green-900);
+    border:none;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    letter-spacing:0.03em;
+    font-size:12.5px;
+    text-transform:uppercase;
+    padding:9px 16px;
+    border-radius:var(--radius);
+    cursor:pointer;
+  }
+  .add-entry-btn:hover{background:#e6a417;}
+
+  table.cal{width:100%;border-collapse:collapse;table-layout:fixed;}
+  table.cal th{
+    font-family:'Roboto Mono',monospace;
+    font-weight:400;
+    font-size:10.5px;
+    color:var(--ink-soft);
+    padding-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  table.cal td{
+    height:48px;
+    text-align:center;
+    vertical-align:middle;
+    position:relative;
+    font-size:13px;
+    border:1px solid var(--line);
+    cursor:default;
+  }
+  td.day{cursor:pointer;}
+  td.day:hover{outline:2px solid var(--gold-500);outline-offset:-2px;}
+  td.today .num{text-decoration:underline;text-decoration-color:var(--gold-700);text-decoration-thickness:2px;}
+  td.st-inside{background:var(--green-100);}
+  td.st-outside{background:var(--gold-100);}
+  td.st-outside .num{color:var(--gold-700);font-weight:700;}
+  td.st-transit{
+    background:repeating-linear-gradient(135deg, var(--green-100) 0 6px, var(--gold-100) 6px 12px);
+  }
+  td.st-transit .num{font-weight:700;color:var(--green-700);}
+  td.empty{background:transparent;border:none;cursor:default;}
+  .day-icon{display:block;font-size:9.5px;line-height:1;margin-top:2px;}
+  table.cal{user-select:none;-webkit-user-select:none;}
+  td.day{-webkit-touch-callout:none;touch-action:manipulation;}
+  .entry-context-note{
+    display:none;margin:0 0 14px;padding:10px 12px;border-left:3px solid var(--gold-700);
+    background:var(--gold-100);font-size:12.5px;line-height:1.5;color:var(--green-900);border-radius:var(--radius);
+  }
+  .entry-context-note.show{display:block;}
+  .link-btn{background:none;border:none;padding:0;margin-top:4px;color:var(--green-700);font-weight:600;
+    font-size:12.5px;text-decoration:underline;cursor:pointer;font-family:inherit;}
+  td.day.selecting{box-shadow:inset 0 0 0 2px var(--gold-700);background:rgba(255,184,28,0.28) !important;}
+
+  .legend{
+    display:flex;
+    gap:16px;
+    margin-top:14px;
+    font-family:'Roboto Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    flex-wrap:wrap;
+  }
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .swatch{width:11px;height:11px;display:inline-block;border:1px solid var(--line);border-radius:2px;}
+  .swatch.inside{background:var(--green-100);}
+  .swatch.outside{background:var(--gold-100);}
+  .swatch.transit{background:repeating-linear-gradient(135deg, var(--green-100) 0 4px, var(--gold-100) 4px 8px);}
+
+  /* Entry form */
+  .entry-form-wrap{display:none;}
+  .entry-form-wrap.open{
+    display:flex;position:fixed;inset:0;z-index:90;align-items:center;justify-content:center;
+    background:rgba(0,20,12,0.55);
+    padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px));
+  }
+  .entry-form-wrap.open form.entry-form{
+    background:var(--paper);border-radius:var(--radius);box-shadow:0 12px 40px rgba(0,0,0,0.3);
+    width:100%;max-width:520px;max-height:100%;overflow-y:auto;padding:22px;
+  }
+  .entry-form-title{font-family:'Oswald',sans-serif;font-size:18px;font-weight:600;color:var(--green-900);margin:0 0 14px;}
+  form.entry-form .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+  form.entry-form .field{flex:1;min-width:140px;display:flex;flex-direction:column;gap:4px;}
+  form.entry-form label{
+    font-family:'Roboto Mono',monospace;
+    font-size:10px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  form.entry-form input, form.entry-form select{
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    padding:8px 9px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--paper);
+    color:var(--ink);
+  }
+
+  .status-select{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .status-opt{
+    flex:1;
+    min-width:110px;
+    text-align:center;
+    padding:10px 8px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius);
+    cursor:pointer;
+    font-family:'Oswald',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    user-select:none;
+  }
+  .status-opt.sel-inside.active{background:var(--green-700);border-color:var(--green-700);color:#fff;}
+  .status-opt.sel-outside.active{background:var(--gold-500);border-color:var(--gold-700);color:var(--green-900);}
+  .status-opt.sel-transit.active{
+    background:repeating-linear-gradient(135deg, var(--green-700) 0 6px, var(--gold-500) 6px 12px);
+    border-color:var(--green-700);
+    color:#fff;
+  }
+
+  .conditional{display:none;}
+  .conditional.show{display:block;}
+
+  .mode-select{display:flex;gap:8px;margin-bottom:12px;}
+  .mode-opt{
+    flex:1;text-align:center;padding:8px;
+    border:1.5px solid var(--line);border-radius:var(--radius);
+    cursor:pointer;font-family:'Roboto Mono',monospace;font-size:12px;
+    color:var(--ink-soft);
+  }
+  .mode-opt.active{background:var(--green-700);border-color:var(--green-700);color:#fff;}
+
+  .form-error{font-size:11.5px;font-family:'Roboto Mono',monospace;color:#8a3324;min-height:14px;margin-bottom:8px;}
+  .form-actions{display:flex;gap:10px;}
+  .form-actions button{
+    font-family:'Oswald',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    padding:10px 16px;
+    border-radius:var(--radius);
+    cursor:pointer;
+  }
+  #entry-save-btn{background:var(--green-700);color:#fff;border:none;}
+  #entry-save-btn:hover{background:var(--green-900);}
+  #entry-cancel-btn{background:none;border:1px solid var(--line);color:var(--ink-soft);}
+  #entry-cancel-btn:hover{border-color:var(--ink);color:var(--ink);}
+
+  /* Entry list */
+  .entry-list{list-style:none;margin:0;padding:0;}
+  .entry-list li{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:11px 0;border-bottom:1px solid var(--line);
+  }
+  .entry-list li:last-child{border-bottom:none;}
+  .entry-tag{
+    font-family:'Oswald',sans-serif;
+    font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;
+    padding:3px 8px;border-radius:100px;white-space:nowrap;
+  }
+  .entry-tag.outside{background:var(--gold-100);color:var(--gold-700);}
+  .entry-tag.transit{background:var(--green-100);color:var(--green-700);}
+  .entry-tag.inside{background:var(--green-100);color:var(--green-700);}
+  .entry-meta{flex:1;font-size:13px;line-height:1.4;}
+  .entry-dates{font-family:'Roboto Mono',monospace;font-size:10.5px;color:var(--ink-soft);}
+  .entry-days{font-family:'Roboto Mono',monospace;font-size:11px;color:var(--ink-soft);white-space:nowrap;}
+  .del-btn{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:14px;padding:2px 4px;}
+  .del-btn:hover{color:#8a3324;}
+  .edit-btn{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:14px;padding:2px 4px;}
+  .edit-btn:hover{color:var(--green-700);}
+  .empty-note{font-size:13px;color:var(--ink-soft);font-style:italic;}
+
+  /* Totals tab */
+  .taxyear-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+  select.yr-select{
+    font-family:'Roboto Mono',monospace;
+    font-size:12px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    padding:7px 10px;
+    color:var(--ink);
+    border-radius:var(--radius);
+  }
+  .stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+  @media (max-width:640px){.stat-cards{grid-template-columns:1fr;}}
+  .stat-card{
+    border-radius:var(--radius);
+    padding:16px;
+    color:#fff;
+  }
+  .stat-card.inside{background:var(--green-700);}
+  .stat-card.outside{background:var(--gold-500);color:var(--green-900);}
+  .stat-card.transit{background:var(--green-900);}
+  .stat-card .num{font-family:'Oswald',sans-serif;font-size:32px;font-weight:700;line-height:1;}
+  .stat-card .lbl{font-family:'Roboto Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;margin-top:6px;opacity:0.9;}
+
+  .threshold{
+    padding:12px 14px;
+    background:var(--green-100);
+    border-left:3px solid var(--green-700);
+    font-family:'Roboto Mono',monospace;
+    font-size:11.5px;
+    line-height:1.6;
+    color:var(--ink);
+    margin-bottom:18px;
+  }
+  .threshold b{color:var(--green-900);}
+
+  .empty-state-banner{
+    display:none;
+    background:var(--gold-100);
+    border:1.5px dashed var(--gold-700);
+    color:var(--green-900);
+    font-size:13.5px;
+    line-height:1.5;
+    padding:14px 16px;
+    border-radius:var(--radius);
+    margin-bottom:18px;
+  }
+  .empty-state-banner b{color:var(--green-700);}
+
+  .country-list{list-style:none;margin:0;padding:0;}
+  .country-list li{
+    display:flex;justify-content:space-between;
+    padding:8px 0;border-bottom:1px solid var(--line);
+    font-size:13px;
+  }
+  .country-list li:last-child{border-bottom:none;}
+  .country-list .cdays{font-family:'Roboto Mono',monospace;color:var(--gold-700);font-weight:600;}
+
+  .pdf-btn{
+    width:100%;margin-top:6px;
+    background:var(--green-900);color:#fff;border:none;
+    padding:13px;font-family:'Oswald',sans-serif;font-weight:600;
+    font-size:13px;letter-spacing:0.04em;text-transform:uppercase;
+    cursor:pointer;border-radius:var(--radius);
+  }
+  .pdf-btn:hover{background:#001d13;}
+  .pdf-btn:disabled{opacity:0.5;cursor:wait;}
+
+  .disclaimer{
+    margin-top:18px;font-family:'Roboto Mono',monospace;font-size:10.5px;
+    color:var(--ink-soft);line-height:1.6;border-top:1px solid var(--line);padding-top:12px;
+  }
+
+  /* Personal Info tab */
+  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .panel-head h2{margin:0;}
+  .edit-toggle{
+    background:none;border:1px solid var(--line);color:var(--ink-soft);
+    font-family:'Roboto Mono',monospace;font-size:11px;padding:6px 12px;
+    cursor:pointer;border-radius:var(--radius);
+  }
+  .edit-toggle:hover{border-color:var(--green-700);color:var(--green-700);}
+
+  .profile-view{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 24px;}
+  @media (max-width:640px){.profile-view{grid-template-columns:1fr 1fr;}}
+  .pv-field{border-bottom:1px solid var(--line);padding-bottom:8px;}
+  .pv-label{font-family:'Roboto Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);margin-bottom:4px;}
+  .pv-value{font-size:14.5px;font-variant-numeric:tabular-nums;}
+  .pv-value.empty{color:#b7ae98;font-style:italic;font-size:13px;}
+  .pv-value.warn{color:#8a3324;font-weight:600;}
+  .profile-empty-note{font-size:13px;color:var(--ink-soft);font-style:italic;}
+
+  .profile-form{display:none;grid-template-columns:repeat(3,1fr);gap:14px 20px;}
+  @media (max-width:640px){.profile-form{grid-template-columns:1fr 1fr;}}
+  .profile-form.open{display:grid;}
+  .profile-form .field{display:flex;flex-direction:column;gap:4px;}
+  .profile-form .field.span2{grid-column:span 2;}
+  .profile-form label{font-family:'Roboto Mono',monospace;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.04em;}
+  .profile-form input{
+    font-family:'Inter',sans-serif;font-size:13.5px;padding:8px 9px;
+    border:1px solid var(--line);border-radius:var(--radius);background:var(--paper);color:var(--ink);
+  }
+  .profile-form-actions{grid-column:1/-1;display:flex;gap:10px;margin-top:4px;}
+  .profile-form .form-error{grid-column:1/-1;margin-bottom:0;}
+  .profile-form-actions button{
+    font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;letter-spacing:0.03em;
+    text-transform:uppercase;padding:9px 15px;border-radius:var(--radius);cursor:pointer;
+  }
+  #profile-save-btn{background:var(--green-700);color:#fff;border:none;}
+  #profile-save-btn:hover{background:var(--green-900);}
+  #profile-cancel-btn{background:none;border:1px solid var(--line);color:var(--ink-soft);}
+  #profile-cancel-btn:hover{border-color:var(--ink);color:var(--ink);}
+  .passport-flag{
+    grid-column:1/-1;font-family:'Roboto Mono',monospace;font-size:11px;color:#8a3324;
+    background:#fbeee9;border-left:3px solid #8a3324;padding:8px 10px;
+  }
+
+  .save-indicator{
+    position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));right:16px;
+    font-family:'Roboto Mono',monospace;font-size:10.5px;
+    background:var(--green-900);color:var(--gold-500);
+    padding:6px 12px;border-radius:100px;opacity:0.9;
+  }
+
+  .storage-error-banner{
+    display:none;
+    background:#fbeee9;
+    border:1.5px solid #8a3324;
+    color:#6e2717;
+    font-size:13px;
+    line-height:1.5;
+    padding:12px 16px;
+    border-radius:var(--radius);
+    margin-top:18px;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .storage-error-banner.show{display:flex;}
+  #storage-retry-btn{
+    background:#8a3324;
+    color:#fff;
+    border:none;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:11.5px;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    padding:7px 13px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  #storage-retry-btn:hover{background:#6e2717;}
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,20,12,0.55);
+    z-index:100;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-card{
+    background:var(--paper);
+    border-radius:var(--radius);
+    padding:24px;
+    width:100%;
+    max-width:440px;
+    max-height:85vh;
+    overflow-y:auto;
+    box-shadow:0 12px 40px rgba(0,0,0,0.3);
+  }
+  .modal-card h2{
+    font-family:'Oswald',sans-serif;
+    font-size:18px;
+    font-weight:600;
+    color:var(--green-900);
+  }
+  .scope-toggle{display:flex;gap:8px;margin-bottom:16px;}
+  .scope-opt{
+    flex:1;
+    text-align:center;
+    padding:9px 8px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius);
+    cursor:pointer;
+    font-family:'Oswald',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    background:none;
+  }
+  .scope-opt.active{background:var(--green-700);border-color:var(--green-700);color:#fff;}
+  .year-checklist{
+    max-height:220px;
+    overflow-y:auto;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:6px 4px;
+    margin-bottom:6px;
+  }
+  .year-check-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 8px;
+    border-bottom:1px solid var(--line);
+    font-size:13.5px;
+  }
+  .year-check-row:last-child{border-bottom:none;}
+  .year-check-row input[type="checkbox"]{width:16px;height:16px;accent-color:var(--green-700);cursor:pointer;}
+  .year-check-row label{cursor:pointer;flex:1;}
+  .year-check-row .yr-note{font-family:'Roboto Mono',monospace;font-size:10px;color:var(--ink-soft);}
+  .modal-card .form-actions button:first-child{background:var(--green-700);color:#fff;border:none;}
+  .modal-card .form-actions button:first-child:hover{background:var(--green-900);}
+  .modal-card .form-actions button:last-child{background:none;border:1px solid var(--line);color:var(--ink-soft);}
+  .modal-card .form-actions button:last-child:hover{border-color:var(--ink);color:var(--ink);}
+  .confirm-message{font-size:13.5px;line-height:1.55;color:var(--ink);white-space:pre-line;}
+
+  :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+
+  .storage-status{
+    border-radius:var(--radius);
+    padding:12px 14px;
+    margin-bottom:14px;
+    border-left:4px solid var(--line);
+    background:var(--cream);
+  }
+  .storage-status.ok{border-left-color:var(--green-700);background:var(--green-100);}
+  .storage-status.warn{border-left-color:var(--gold-700);background:var(--gold-100);}
+  .storage-status-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;color:var(--green-900);margin-bottom:4px;}
+  .storage-status-detail{font-size:12.5px;line-height:1.5;color:var(--ink-soft);}
+  .backup-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .backup-btn{
+    font-family:'Oswald',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:0.03em;
+    text-transform:uppercase;padding:10px 16px;border-radius:var(--radius);cursor:pointer;
+    background:var(--green-700);color:#fff;border:none;
+  }
+  .backup-btn:hover{background:var(--green-900);}
+  .backup-btn.secondary{background:none;border:1.5px solid var(--green-700);color:var(--green-700);}
+  .backup-btn.secondary:hover{background:var(--green-100);}
+  .backup-btn:disabled{opacity:0.5;cursor:wait;}
+  .doc-slot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:12px 0;border-bottom:1px solid var(--line);}
+  .doc-slot:first-of-type{padding-top:0;}
+  .doc-slot-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;color:var(--green-900);}
+  .doc-slot-info{font-size:12.5px;color:var(--ink);margin-top:2px;word-break:break-word;}
+  .doc-slot-info.empty{color:var(--ink-soft);font-style:italic;}
+  .doc-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .doc-remove{background:none;border:none;color:#8a3324;font-size:12px;text-decoration:underline;cursor:pointer;padding:4px;}
+  .doc-remove:disabled, .doc-slot .backup-btn:disabled{opacity:0.5;cursor:wait;}
+  .backup-meta{font-family:'Roboto Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:10px;}
+  body.locked > *:not(#auth-overlay){display:none !important;}
+  .auth-overlay{display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;
+    background:linear-gradient(180deg,var(--green-900),var(--green-700));
+    padding:calc(24px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));}
+  .auth-overlay.show{display:flex;align-items:flex-start;justify-content:center;}
+  body:not(.locked) .auth-overlay.show{background:rgba(0,20,12,0.6);}
+  .auth-card{background:var(--paper);border-radius:6px;box-shadow:0 16px 48px rgba(0,0,0,0.35);width:100%;max-width:420px;padding:26px 24px;margin:auto 0;}
+  .auth-brand{font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;color:var(--green-900);margin-bottom:4px;}
+  .auth-brand::before{content:'';display:block;width:36px;height:4px;background:var(--gold-500);margin-bottom:10px;}
+  .auth-card h2.auth-title{font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;color:var(--green-900);margin:8px 0 8px;text-transform:none;letter-spacing:0;}
+  .auth-sub{font-size:13.5px;line-height:1.55;color:var(--ink-soft);margin:0 0 12px;}
+  .auth-sub.small{font-size:12px;}
+  .auth-sub b{color:var(--green-900);}
+  .auth-card form{display:flex;flex-direction:column;gap:12px;margin-top:6px;}
+  .auth-card label{display:flex;flex-direction:column;gap:5px;font-family:'Roboto Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);}
+  .auth-card input:not([type=checkbox]){font-family:'Inter',sans-serif;font-size:16px;padding:10px 11px;border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);background:var(--paper);text-transform:none;letter-spacing:0;}
+  .auth-card input:focus{outline:2px solid var(--gold-500);outline-offset:0;border-color:var(--green-700);}
+  .auth-btn{font-family:'Oswald',sans-serif;font-weight:600;font-size:13.5px;letter-spacing:0.04em;text-transform:uppercase;padding:12px 16px;border:none;border-radius:var(--radius);background:var(--green-700);color:#fff;cursor:pointer;width:100%;}
+  .auth-btn:hover{background:var(--green-900);}
+  .auth-btn.secondary{background:none;border:1.5px solid var(--green-700);color:var(--green-700);width:auto;flex:1;}
+  .auth-btn.secondary:hover{background:var(--green-100);}
+  .auth-btn.danger{background:#8a3324;}
+  .auth-btn:disabled{opacity:0.55;cursor:not-allowed;}
+  .auth-link{background:none;border:none;color:var(--green-700);font-size:13px;text-decoration:underline;cursor:pointer;padding:10px 0 0;display:block;font-family:inherit;}
+  .auth-link.danger{color:#8a3324;font-size:12px;}
+  .auth-error{color:#8a3324;font-size:12.5px;min-height:16px;font-family:'Roboto Mono',monospace;line-height:1.45;}
+  .code-list{list-style:none;padding:12px 14px;margin:10px 0 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;
+    background:var(--cream);border:1px dashed var(--gold-700);border-radius:var(--radius);counter-reset:c;}
+  .code-list li{font-family:'Roboto Mono',monospace;font-size:14.5px;letter-spacing:0.04em;color:var(--green-900);counter-increment:c;white-space:nowrap;}
+  .code-list li::before{content:counter(c) '. ';color:var(--ink-soft);font-size:11px;}
+  .auth-row{display:flex;gap:8px;margin-bottom:10px;}
+  .auth-card label.auth-check{flex-direction:row;align-items:center;gap:10px;font-family:'Inter',sans-serif;font-size:13.5px;text-transform:none;letter-spacing:0;color:var(--ink);margin:4px 0 12px;}
+  .auth-check input{width:18px;height:18px;accent-color:var(--green-700);}
+  .header-actions{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;}
+  .header-lock-btn{background:transparent;border:1.5px solid var(--gold-500);color:var(--gold-500);font-family:'Oswald',sans-serif;font-weight:600;
+    font-size:12px;letter-spacing:0.03em;text-transform:uppercase;padding:8.5px 14px;border-radius:var(--radius);cursor:pointer;margin-top:2px;}
+  .header-lock-btn:hover{background:rgba(255,184,28,0.12);}
+  .sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;}
+  .backup-help{font-size:12.5px;line-height:1.55;color:var(--ink-soft);margin-top:12px;}
+  .backup-help b{color:var(--green-900);}
+  .app-version{font-family:'Roboto Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:14px;padding-top:10px;border-top:1px solid var(--line);}
+  .backup-message{font-size:12px;font-family:'Roboto Mono',monospace;min-height:14px;margin-top:10px;}
+  .backup-message.error{color:#8a3324;}
+  .backup-message.success{color:var(--green-700);}
+
+  .toast{
+    position:fixed;
+    bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    left:16px;
+    display:none;
+    align-items:center;
+    gap:14px;
+    background:var(--green-900);
+    color:#fff;
+    padding:10px 12px 10px 16px;
+    border-radius:var(--radius);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.22);
+    z-index:50;
+  }
+  .toast.show{display:flex;}
+  .toast #undo-btn{
+    background:var(--gold-500);
+    color:var(--green-900);
+    border:none;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:11.5px;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    padding:6px 12px;
+    border-radius:var(--radius);
+    cursor:pointer;
+  }
+  .toast #undo-btn:hover{background:#e6a417;}
+</style>
+</head>
+<body class="locked">
+<div class="auth-overlay show" id="auth-overlay" data-screen="loading" role="dialog" aria-modal="true" aria-label="Sign in">
+  <div class="auth-card" id="auth-card"><div class="auth-brand">SA Days Tracker</div><p class="auth-sub">Opening…</p></div>
+</div>
+
+<header>
+  <div class="inner">
+    <div class="header-top">
+      <div class="title-block">
+        <h1 id="app-title-display">
+          <span id="app-title-text">SA Days Tracker</span>
+          <button class="title-edit-btn" id="title-edit-btn" aria-label="Edit title">✎</button>
+        </h1>
+        <input type="text" id="app-title-input" class="title-input" maxlength="60" style="display:none;">
+        <p>Log every day as inside South Africa, outside South Africa, or in transit — then see totals per tax year and export a signed summary.</p>
+      </div>
+      <div class="header-actions">
+        <button class="header-lock-btn" id="lock-btn-header" style="display:none;">🔒 Lock</button>
+        <button class="header-pdf-btn" id="pdf-btn-header">⬇ Download PDF</button>
+      </div>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="calendar">Calendar</button>
+    <button class="tab-btn" data-tab="totals">Totals</button>
+    <button class="tab-btn" data-tab="personal">Personal Info</button>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="storage-error-banner" id="storage-error-banner">
+    <span id="storage-error-message">⚠ Changes aren't being saved to persistent storage right now.</span>
+    <button id="storage-retry-btn">Retry</button>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- CALENDAR TAB -->
+  <section class="tab-panel active" id="tab-calendar">
+    <div class="panel">
+      <div class="cal-toolbar">
+        <div class="cal-nav">
+          <button id="prev-month" aria-label="Previous month">‹</button>
+          <div class="cal-title" id="cal-title"></div>
+          <button id="next-month" aria-label="Next month">›</button>
+        </div>
+        <button class="add-entry-btn" id="add-entry-btn">+ Add Entry</button>
+      </div>
+      <table class="cal">
+        <thead><tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr></thead>
+        <tbody id="cal-body"></tbody>
+      </table>
+      <div class="legend">
+        <span><span class="swatch inside"></span>Inside South Africa</span>
+        <span><span class="swatch outside"></span>Outside South Africa</span>
+        <span><span class="swatch transit"></span>Transit</span>
+        <span>Tip: click a day to change just that day · drag across days to pick several (phone: press &amp; hold, then drag)</span>
+      </div>
+
+      <div class="entry-form-wrap" id="entry-form-wrap">
+        <form class="entry-form" id="entry-form">
+          <h2 class="entry-form-title" id="entry-form-title">Log days</h2>
+          <div class="entry-context-note" id="entry-context-note">
+            <span id="entry-context-text"></span><br>
+            <button type="button" class="link-btn" id="edit-whole-trip-btn">Edit the whole trip instead</button>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="e-from">Date From</label>
+              <input type="date" id="e-from" required>
+            </div>
+            <div class="field">
+              <label for="e-to">Date To</label>
+              <input type="date" id="e-to" required>
+            </div>
+          </div>
+          <div style="font-family:'Roboto Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin:-6px 0 14px;">Any date range works here — log past trips to build up your history, or future-dated trips you've already booked.</div>
+
+          <div class="status-select">
+            <div class="status-opt sel-inside active" data-status="inside">Inside SA</div>
+            <div class="status-opt sel-outside" data-status="outside">Outside SA</div>
+            <div class="status-opt sel-transit" data-status="transit">Transit</div>
+          </div>
+
+          <div class="conditional" id="cond-outside">
+            <div class="row">
+              <div class="field" style="flex:2;">
+                <label for="e-country">Country currently in</label>
+                <input type="text" id="e-country" list="country-list" placeholder="e.g. United Kingdom">
+              </div>
+            </div>
+          </div>
+
+          <div class="conditional" id="cond-transit">
+            <label style="font-family:'Roboto Mono',monospace;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Transit Mode</label>
+            <div class="mode-select">
+              <div class="mode-opt active" data-mode="air">✈ Air</div>
+              <div class="mode-opt" data-mode="sea">⚓ Sea</div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="e-from-country">Departing From</label>
+                <input type="text" id="e-from-country" list="country-list" placeholder="Country departing">
+              </div>
+              <div class="field">
+                <label for="e-to-country">Travelling To</label>
+                <input type="text" id="e-to-country" list="country-list" placeholder="Country destination">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-error" id="form-error"></div>
+          <div class="form-actions">
+            <button type="submit" id="entry-save-btn">Save Entry</button>
+            <button type="button" id="entry-cancel-btn">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2 style="margin:0;">Logged Entries</h2>
+        <button class="edit-toggle" id="clear-entries-btn">Clear All Entries</button>
+      </div>
+      <ul class="entry-list" id="entry-list"></ul>
+    </div>
+  </section>
+
+  <!-- TOTALS TAB -->
+  <section class="tab-panel" id="tab-totals">
+    <div class="panel">
+      <div class="empty-state-banner" id="totals-empty-banner">No entries logged yet — head to the <b>Calendar</b> tab to log your first day.</div>
+      <div id="totals-passport-flag"></div>
+      <div class="taxyear-row">
+        <h2 style="margin:0;">Tax Year Summary</h2>
+        <select id="taxyear-select" class="yr-select"></select>
+      </div>
+      <div class="stat-cards">
+        <div class="stat-card inside">
+          <div class="num" id="stat-inside">—</div>
+          <div class="lbl">Days Inside SA</div>
+        </div>
+        <div class="stat-card outside">
+          <div class="num" id="stat-outside">—</div>
+          <div class="lbl">Days Outside SA</div>
+        </div>
+        <div class="stat-card transit">
+          <div class="num" id="stat-transit">—</div>
+          <div class="lbl">Days In Transit</div>
+        </div>
+      </div>
+      <div style="font-family:'Roboto Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin:-8px 0 16px;">Transit days count toward both Inside SA and Outside SA totals, since a travel day is typically spent partly in each — so Inside + Outside may add up to more than the days elapsed.</div>
+      <div class="threshold" id="threshold-box"></div>
+      <h2>Days Outside By Country</h2>
+      <ul class="country-list" id="country-list-totals"></ul>
+    </div>
+
+    <div class="panel">
+      <h2>Export</h2>
+      <button class="pdf-btn" id="pdf-btn">Download PDF Summary</button>
+      <div class="disclaimer">
+        Day counts follow the SARS physical presence test convention (day of arrival and day of departure both count as a day present in SA). Transit days are shown separately since treatment can vary by circumstance. This tool is for personal record-keeping only — it is not tax or immigration advice. Confirm your residency position with a registered tax practitioner.
+      </div>
+    </div>
+  </section>
+
+  <!-- PERSONAL INFO TAB -->
+  <section class="tab-panel" id="tab-personal">
+    <div class="panel">
+      <div class="panel-head">
+        <h2 style="margin:0;">Personal Profile</h2>
+        <button class="edit-toggle" id="profile-edit-btn">Edit</button>
+      </div>
+      <div id="profile-view"></div>
+      <form class="profile-form" id="profile-form">
+        <div class="field span2">
+          <label for="p-name">Name</label>
+          <input type="text" id="p-name" maxlength="60">
+        </div>
+        <div class="field">
+          <label for="p-surname">Surname</label>
+          <input type="text" id="p-surname" maxlength="60">
+        </div>
+        <div class="field">
+          <label for="p-email">Email</label>
+          <input type="email" id="p-email" maxlength="80" autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="p-id">ID Number</label>
+          <input type="text" id="p-id" maxlength="13" inputmode="numeric" placeholder="13 digits">
+        </div>
+        <div class="field">
+          <label for="p-tax">Tax Number</label>
+          <input type="text" id="p-tax" maxlength="10" inputmode="numeric" placeholder="10 digits">
+        </div>
+        <div class="field">
+          <label for="p-passport">Passport Number</label>
+          <input type="text" id="p-passport" maxlength="20">
+        </div>
+        <div class="field">
+          <label for="p-issue">Passport Issue Date</label>
+          <input type="date" id="p-issue">
+        </div>
+        <div class="field">
+          <label for="p-expiry">Passport Expiry Date</label>
+          <input type="date" id="p-expiry">
+        </div>
+        <div class="form-error" id="profile-form-error"></div>
+        <div class="profile-form-actions">
+          <button type="submit" id="profile-save-btn">Save Profile</button>
+          <button type="button" id="profile-cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Documents on Record</h2>
+      <div class="doc-slot">
+        <div class="doc-slot-main">
+          <div class="doc-slot-title">ID Document</div>
+          <div class="doc-slot-info" id="doc-info-id">No PDF on record yet</div>
+        </div>
+        <div class="doc-actions">
+          <button type="button" class="backup-btn" id="doc-upload-id">⬆ Upload PDF</button>
+          <button type="button" class="backup-btn secondary" id="doc-download-id" style="display:none;">⬇ Download</button>
+          <button type="button" class="doc-remove" id="doc-remove-id" style="display:none;">Remove</button>
+        </div>
+      </div>
+      <div class="doc-slot">
+        <div class="doc-slot-main">
+          <div class="doc-slot-title">Passport</div>
+          <div class="doc-slot-info" id="doc-info-passport">No PDF on record yet</div>
+        </div>
+        <div class="doc-actions">
+          <button type="button" class="backup-btn" id="doc-upload-passport">⬆ Upload PDF</button>
+          <button type="button" class="backup-btn secondary" id="doc-download-passport" style="display:none;">⬇ Download</button>
+          <button type="button" class="doc-remove" id="doc-remove-passport" style="display:none;">Remove</button>
+        </div>
+      </div>
+      <input type="file" id="doc-file-input" accept="application/pdf,.pdf" style="display:none;">
+      <div class="backup-message" id="doc-message"></div>
+      <div class="backup-help">PDFs up to 10 MB each, kept in your private area (only you can see them) and included in every Download Backup.</div>
+    </div>
+
+    <div class="panel" id="security-panel" style="display:none;">
+      <h2>Login &amp; Security</h2>
+      <div class="sec-grid">
+        <div class="pv-field"><div class="pv-label">Signed in as</div><div class="pv-value" id="security-user"></div></div>
+        <div class="pv-field"><div class="pv-label">Recovery codes</div><div class="pv-value" id="security-codes"></div></div>
+      </div>
+      <div class="passport-flag" id="security-low" style="display:none;margin-top:12px;">You’re running low on recovery codes — create new ones so you can’t get locked out.</div>
+      <div class="backup-actions" style="margin-top:14px;">
+        <button type="button" class="backup-btn" id="sec-change-btn">Change username / password</button>
+        <button type="button" class="backup-btn secondary" id="sec-codes-btn">New recovery codes</button>
+        <button type="button" class="backup-btn secondary" id="sec-lock-btn">🔒 Lock now</button>
+      </div>
+      <div class="backup-help"><span id="security-scope"></span> Everything the app saves is encrypted and opens only with your password or a recovery code. It locks itself after 10 minutes without use.</div>
+    </div>
+
+    <div class="panel">
+      <h2>Backup &amp; Saving</h2>
+      <div class="storage-status" id="storage-status">
+        <div class="storage-status-title" id="storage-status-title">Checking where your data is saved…</div>
+        <div class="storage-status-detail" id="storage-status-detail"></div>
+      </div>
+      <div class="backup-actions">
+        <button type="button" class="backup-btn" id="backup-export-btn">⬇ Download Backup</button>
+        <button type="button" class="backup-btn secondary" id="backup-import-btn">⬆ Upload Backup</button>
+        <a class="backup-btn" id="open-permanent-link" href="#" target="_blank" rel="noopener" style="display:none;text-decoration:none;">Open permanent version ↗</a>
+        <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none;">
+      </div>
+      <div class="backup-help">
+        <b>Download Backup</b> saves one file with all your days, trips, personal details and ID/passport PDFs — keep it somewhere safe (email it to yourself).
+        <b>Upload Backup</b> loads such a file back in: its days and personal details replace what’s here, so the latest backup you upload is what the app keeps (you can undo for a few seconds).
+        Backup files are <b>not</b> encrypted, so they still work if you ever lose your password — keep them private (your Dropbox is fine).
+      </div>
+      <div class="backup-meta" id="backup-meta"></div>
+      <div class="backup-message" id="backup-message"></div>
+      <div class="app-version" id="app-version"></div>
+    </div>
+  </section>
+
+</main>
+
+<div class="modal-overlay" id="confirm-overlay">
+  <div class="modal-card">
+    <h2 style="margin:0 0 12px;" id="confirm-title">Please confirm</h2>
+    <div class="confirm-message" id="confirm-message"></div>
+    <div class="form-actions" style="margin-top:18px;">
+      <button type="button" id="confirm-ok-btn">Continue</button>
+      <button type="button" id="confirm-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="save-indicator" id="save-indicator">● loading…</div>
+<div class="toast" id="undo-toast">
+  <span id="undo-toast-label"></span>
+  <button id="undo-btn">Undo</button>
+</div>
+
+<datalist id="country-list">
+  <option value="Afghanistan"><option value="Albania"><option value="Algeria"><option value="Andorra">
+  <option value="Angola"><option value="Argentina"><option value="Armenia"><option value="Australia">
+  <option value="Austria"><option value="Azerbaijan"><option value="Bahamas"><option value="Bahrain">
+  <option value="Bangladesh"><option value="Barbados"><option value="Belarus"><option value="Belgium">
+  <option value="Belize"><option value="Benin"><option value="Bhutan"><option value="Bolivia">
+  <option value="Bosnia and Herzegovina"><option value="Botswana"><option value="Brazil">
+  <option value="Brunei"><option value="Bulgaria"><option value="Burkina Faso"><option value="Burundi">
+  <option value="Cambodia"><option value="Cameroon"><option value="Canada"><option value="Chad">
+  <option value="Chile"><option value="China"><option value="Colombia"><option value="Comoros">
+  <option value="Congo (DRC)"><option value="Congo (Republic)"><option value="Costa Rica">
+  <option value="Croatia"><option value="Cuba"><option value="Cyprus"><option value="Czechia">
+  <option value="Denmark"><option value="Djibouti"><option value="Dominican Republic">
+  <option value="Ecuador"><option value="Egypt"><option value="El Salvador"><option value="Estonia">
+  <option value="Eswatini"><option value="Ethiopia"><option value="Fiji"><option value="Finland">
+  <option value="France"><option value="Gabon"><option value="Gambia"><option value="Georgia">
+  <option value="Germany"><option value="Ghana"><option value="Greece"><option value="Guatemala">
+  <option value="Guinea"><option value="Guyana"><option value="Haiti"><option value="Honduras">
+  <option value="Hong Kong"><option value="Hungary"><option value="Iceland"><option value="India">
+  <option value="Indonesia"><option value="Iran"><option value="Iraq"><option value="Ireland">
+  <option value="Israel"><option value="Italy"><option value="Ivory Coast"><option value="Jamaica">
+  <option value="Japan"><option value="Jordan"><option value="Kazakhstan"><option value="Kenya">
+  <option value="Kuwait"><option value="Kyrgyzstan"><option value="Laos"><option value="Latvia">
+  <option value="Lebanon"><option value="Lesotho"><option value="Liberia"><option value="Libya">
+  <option value="Liechtenstein"><option value="Lithuania"><option value="Luxembourg">
+  <option value="Madagascar"><option value="Malawi"><option value="Malaysia"><option value="Maldives">
+  <option value="Mali"><option value="Malta"><option value="Mauritius"><option value="Mexico">
+  <option value="Moldova"><option value="Monaco"><option value="Mongolia"><option value="Montenegro">
+  <option value="Morocco"><option value="Mozambique"><option value="Myanmar"><option value="Namibia">
+  <option value="Nepal"><option value="Netherlands"><option value="New Zealand"><option value="Nicaragua">
+  <option value="Niger"><option value="Nigeria"><option value="North Korea"><option value="North Macedonia">
+  <option value="Norway"><option value="Oman"><option value="Pakistan"><option value="Panama">
+  <option value="Papua New Guinea"><option value="Paraguay"><option value="Peru"><option value="Philippines">
+  <option value="Poland"><option value="Portugal"><option value="Qatar"><option value="Romania">
+  <option value="Russia"><option value="Rwanda"><option value="Saudi Arabia"><option value="Senegal">
+  <option value="Serbia"><option value="Seychelles"><option value="Sierra Leone"><option value="Singapore">
+  <option value="Slovakia"><option value="Slovenia"><option value="Somalia"><option value="South Korea">
+  <option value="South Sudan"><option value="Spain"><option value="Sri Lanka"><option value="Sudan">
+  <option value="Suriname"><option value="Sweden"><option value="Switzerland"><option value="Syria">
+  <option value="Taiwan"><option value="Tajikistan"><option value="Tanzania"><option value="Thailand">
+  <option value="Togo"><option value="Trinidad and Tobago"><option value="Tunisia"><option value="Turkey">
+  <option value="Turkmenistan"><option value="Uganda"><option value="Ukraine">
+  <option value="United Arab Emirates"><option value="United Kingdom"><option value="United States">
+  <option value="Uruguay"><option value="Uzbekistan"><option value="Venezuela"><option value="Vietnam">
+  <option value="Yemen"><option value="Zambia"><option value="Zimbabwe">
+</datalist>
+
+<div class="modal-overlay" id="pdf-scope-overlay">
+  <div class="modal-card">
+    <h2 style="margin:0 0 14px;">Export PDF Summary</h2>
+    <div class="scope-toggle">
+      <button type="button" class="scope-opt active" id="scope-opt-years" data-scope="years">By Tax Year</button>
+      <button type="button" class="scope-opt" id="scope-opt-custom" data-scope="custom">Custom Date Range</button>
+    </div>
+
+    <div id="scope-years-panel">
+      <div style="font-family:'Roboto Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-bottom:8px;">Choose one or more tax years to include:</div>
+      <div class="year-checklist" id="year-checklist"></div>
+    </div>
+
+    <div id="scope-custom-panel" style="display:none;">
+      <div class="row">
+        <div class="field">
+          <label for="pdf-range-from">From</label>
+          <input type="date" id="pdf-range-from">
+        </div>
+        <div class="field">
+          <label for="pdf-range-to">To</label>
+          <input type="date" id="pdf-range-to">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-error" id="pdf-scope-error"></div>
+    <div class="form-actions">
+      <button type="button" id="pdf-scope-generate">Generate PDF</button>
+      <button type="button" id="pdf-scope-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------- Tabs ----------
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+  tabBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      tabBtns.forEach(b=>b.classList.remove('active'));
+      tabPanels.forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'totals') renderTotals();
+    });
+  });
+
+  // ---------- Editable heading ----------
+  function renderTitle(){
+    document.getElementById('app-title-text').textContent = appTitle;
+    document.title = appTitle;
+  }
+  function openTitleEdit(){
+    titleEditOpen = true;
+    const input = document.getElementById('app-title-input');
+    input.value = appTitle;
+    document.getElementById('app-title-display').style.display = 'none';
+    input.style.display = 'block';
+    input.focus();
+    input.select();
+  }
+  function closeTitleEdit(){
+    document.getElementById('app-title-input').style.display = 'none';
+    document.getElementById('app-title-display').style.display = '';
+  }
+  let titleEditOpen = false;
+  async function commitTitleEdit(){
+    if (!titleEditOpen) return;          // Enter then blur, or blur after Escape: only one decision counts
+    titleEditOpen = false;
+    const input = document.getElementById('app-title-input');
+    const val = input.value.trim();
+    appTitle = val || DEFAULT_TITLE;
+    closeTitleEdit();
+    renderTitle();
+    await saveTitle();
+  }
+  document.getElementById('title-edit-btn').addEventListener('click', openTitleEdit);
+  document.getElementById('app-title-input').addEventListener('keydown', (e)=>{
+    if (e.key === 'Enter'){ e.preventDefault(); commitTitleEdit(); }
+    else if (e.key === 'Escape'){ e.preventDefault(); titleEditOpen = false; closeTitleEdit(); }
+  });
+  document.getElementById('app-title-input').addEventListener('blur', commitTitleEdit);
+
+  // ---------- State ----------
+  const saveIndicator = document.getElementById('save-indicator');
+
+  // ---------- Storage backend selection ----------
+  // Where the data lives, chosen once at startup by initStorage():
+  //  'cloud'  — the published claude.ai link. Data is kept server-side in this app's own
+  //             database, in a private per-person area of the owner's Claude account.
+  //             It survives browser clearing, restarts and new devices. The permanent home.
+  //  'claude' — the in-chat preview inside a Claude conversation (window.storage).
+  //  'local'  — the file opened directly from a computer. Uses this browser's localStorage,
+  //             which browsers may clear on their own (Safari after about a week of use).
+  //  'none'   — nothing available (e.g. strict private browsing).
+  const APP_VERSION = '2026-11-16';
+  const LS_PREFIX = 'sa-days-tracker::';
+  let storageMode = 'none';
+  let cloudDb = null, cloudUid = null, downloadsNs = null;
+  let dataLoadFailed = false;  // saved data exists but couldn't be read: saving is paused so nothing gets overwritten
+  let dataReady = false;       // first load finished (used to avoid flashing "no entries" while loading)
+  const lastKnownValue = {};   // last value read from / written to storage, per key (live-sync echo suppression)
+  let mirrorAvailable = false; // cloud mode also keeps a copy in this browser
+  let showingBrowserCopy = false; // Claude couldn't be reached, so the browser copy is on screen (saving paused)
+  let lastStorageErrorCode = null;  // e.g. 'not_granted' when the Claude storage permission was declined
+  const PERMANENT_URL = '';
+  // Where this copy is running: a file opened from the computer, the GitHub link, or another website.
+  const HOST_KIND = location.protocol === 'file:' ? 'file' : (/\.github\.io$/i.test(location.hostname) ? 'github' : 'web');
+  const writeChains = {};      // per-key promise chains: writes to one record never overlap
+  const writesInFlight = {};   // per-key count of queued/running writes
+
+  function claudeStorageAvailable(){
+    return typeof window.storage !== 'undefined' && window.storage !== null;
+  }
+  function localStorageAvailable(){
+    try{
+      const probeKey = '__sa_tracker_ls_probe__';
+      window.localStorage.setItem(probeKey, '1');
+      window.localStorage.removeItem(probeKey);
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  async function initStorage(){
+    if (window.claude && typeof window.claude.use === 'function'){
+      try{
+        const results = await Promise.all([
+          window.claude.use('db'), window.claude.use('user'), window.claude.use('downloads')
+        ]);
+        const dbNs = results[0], userNs = results[1];
+        downloadsNs = results[2] || null;
+        if (dbNs && userNs){
+          const uid = await userNs.id();
+          if (uid){ cloudDb = dbNs; cloudUid = uid; storageMode = 'cloud'; mirrorAvailable = localStorageAvailable(); return; }
+        }
+      }catch(e){ /* fall through to the next option */ }
+    }
+    storageMode = claudeStorageAvailable() ? 'claude' : (localStorageAvailable() ? 'local' : 'none');
+    if (storageMode === 'local' && navigator.storage && navigator.storage.persist){
+      // Ask the browser not to evict this data. Not a guarantee — hence the backup tools.
+      navigator.storage.persist().catch(()=>{});
+    }
+  }
+
+  function cloudRef(key){ return cloudDb.doc('data/users/' + cloudUid + '/' + key); }
+
+  // get() resolves null when nothing has been saved under `key` yet, and THROWS when the read
+  // itself fails. The two must never be confused: a failed read mistaken for "no data" would
+  // make the app overwrite real saved data with defaults.
+  const storageAdapter = {
+    async get(key){
+      if (storageMode === 'cloud'){
+        const snap = await cloudRef(key).get();
+        if (!snap.exists) return null;
+        const body = snap.data() || {};
+        return typeof body.value === 'string' ? { key, value: body.value, updatedAt: String(body.updatedAt || '') } : null;
+      }
+      if (storageMode === 'claude'){
+        try{ return await window.storage.get(key, false); }
+        catch(e){ return null; } // window.storage throws for a missing key and offers no separate error signal
+      }
+      if (storageMode === 'local'){
+        const raw = window.localStorage.getItem(LS_PREFIX + key);
+        return raw === null ? null : { key, value: raw };
+      }
+      throw new Error('no storage backend available');
+    },
+    async set(key, value, ts){
+      if (storageMode === 'cloud'){
+        await cloudRef(key).set({ value: value, updatedAt: ts || new Date().toISOString() });
+        return { key, value };
+      }
+      if (storageMode === 'claude') return await window.storage.set(key, value, false);
+      if (storageMode === 'local'){
+        window.localStorage.setItem(LS_PREFIX + key, value);
+        return { key, value };
+      }
+      throw new Error('no storage backend available');
+    },
+    async remove(key){
+      if (storageMode === 'cloud'){ await cloudRef(key).delete(); return true; }
+      if (storageMode === 'claude'){ await window.storage.delete(key, false); return true; }
+      if (storageMode === 'local'){ window.localStorage.removeItem(LS_PREFIX + key); return true; }
+      throw new Error('no storage backend available');
+    }
+  };
+  // ---------- Browser copy (cloud mode) ----------
+  // Every save goes to this browser first, then to Claude. The browser copy remembers whether
+  // Claude has confirmed it, so an edit made while offline is pushed up the next time the app
+  // opens instead of being lost.
+  function readMirror(key){
+    if (!mirrorAvailable) return null;
+    try{
+      const value = window.localStorage.getItem(LS_PREFIX + key);
+      if (value === null) return null;
+      const meta = JSON.parse(window.localStorage.getItem(LS_PREFIX + key + '::meta') || '{}');
+      return { value: value, updatedAt: String(meta.updatedAt || ''), synced: meta.synced === true };
+    }catch(e){ return null; }
+  }
+  function writeMirror(key, value, ts, synced){
+    if (!mirrorAvailable) return;
+    try{
+      window.localStorage.setItem(LS_PREFIX + key, value);
+      window.localStorage.setItem(LS_PREFIX + key + '::meta', JSON.stringify({ updatedAt: ts, synced: !!synced }));
+    }catch(e){ /* browser copy is a convenience; Claude remains the permanent copy */ }
+  }
+  function markMirrorSynced(key, ts){
+    const m = readMirror(key);
+    if (m && m.updatedAt === ts) writeMirror(key, m.value, ts, true); // a newer edit may have landed meanwhile
+  }
+  function storageApiPresent(){
+    return storageMode !== 'none';
+  }
+  function syncedLabel(){
+    if (storageMode === 'cloud') return mirrorAvailable ? '● saved to Claude + this browser' : '● saved to Claude';
+    if (storageMode === 'local') return HOST_KIND === 'file' ? '● saved in this browser only' : '● saved on this device';
+    return '● synced';
+  }
+  function storageModeDescription(){
+    if (storageMode === 'cloud') return { cls:'ok',
+      title: mirrorAvailable ? 'Saved permanently to your Claude account + a copy in this browser' : 'Saved permanently to your Claude account',
+      detail:'Your Claude account holds the permanent copy, in a private area only you can see \u2014 it isn\u2019t affected by clearing your browser, restarting, or switching computers.' +
+        (mirrorAvailable ? ' This browser keeps a second copy, so if the internet drops you can still see your data, and anything saved while offline is sent to Claude the next time you open the app.' : '') };
+    if (storageMode === 'claude') return { cls:'neutral',
+      title:'Saved in this Claude conversation',
+      detail:'This is the preview inside a Claude chat. For permanent saving that works from a desktop shortcut, use the published claude.ai link of this app.' };
+    if (storageMode === 'local' && HOST_KIND !== 'file') return { cls:'neutral',
+      title:'Saved on this device, encrypted with your password',
+      detail:'Everything is stored in this browser on this device only, locked with your password. Each device and browser keeps its own copy, so download a backup regularly (your Dropbox is a good place) and use Upload Backup to copy your data to another device. On iPhone, add the app to your Home Screen and always open it from there \u2014 Safari deletes website data after 7 days without use unless the site is on the Home Screen.' };
+    if (storageMode === 'local') return { cls:'warn',
+      title:'Saved in this browser only \u2014 not permanent',
+      detail:'This copy was opened as a file from your computer, so it can only save inside this browser, which can be cleared.' +
+        (PERMANENT_URL ? ' Open the permanent version below and bookmark it instead. To bring data across, Download Backup here, then Upload Backup there.' : ' Download a backup regularly.') };
+    return { cls:'warn',
+      title:'Not saving',
+      detail:'This browser has storage switched off (common in private browsing). Download a backup before closing, or open the published claude.ai link instead.' };
+  }
+
+  function flashStorageError(reason){
+    const banner = document.getElementById('storage-error-banner');
+    const msgEl = document.getElementById('storage-error-message');
+    const retryBtn = document.getElementById('storage-retry-btn');
+    if (storageMode === 'cloud' && lastStorageErrorCode === 'not_granted' && reason !== 'unavailable'){
+      msgEl.textContent = '\u26a0 Claude asked for permission to save this app\u2019s data and it wasn\u2019t allowed, so nothing is reaching your Claude account. Reload the page and choose Allow when asked.' +
+        (mirrorAvailable ? ' Your changes are being kept in this browser in the meantime.' : '');
+      retryBtn.style.display = '';
+      banner.classList.add('show');
+      return;
+    }
+    if (reason === 'unavailable'){
+      msgEl.textContent = '\u26a0 Saving isn\u2019t available in this browser (storage is switched off, common in private browsing). Nothing entered will be kept after this session closes \u2014 use Download Backup on the Personal Info tab, or open the published claude.ai link.';
+      retryBtn.style.display = 'none'; // retrying can't help until the browser environment itself changes
+    } else if (reason === 'load-failed-mirror'){
+      msgEl.textContent = '\u26a0 Couldn\u2019t reach your Claude account, so you\u2019re seeing the copy saved in this browser. Saving is paused until the connection is back so nothing gets overwritten \u2014 press Retry.';
+      retryBtn.style.display = '';
+    } else if (reason === 'load-failed'){
+      msgEl.textContent = '\u26a0 Your saved data couldn\u2019t be loaded just now, so saving is paused to protect it from being overwritten. Check your internet connection and press Retry.';
+      retryBtn.style.display = '';
+    } else if (reason === 'write-failed-mirror'){
+      msgEl.textContent = '\u26a0 Couldn\u2019t reach your Claude account. Your change is saved in this browser and will be sent to Claude automatically next time you open the app \u2014 or press Retry now.';
+      retryBtn.style.display = '';
+    } else {
+      msgEl.textContent = '\u26a0 Changes aren\u2019t being saved right now. Anything you enter may be lost if you close or reload this app.';
+      retryBtn.style.display = '';
+    }
+    banner.classList.add('show');
+  }
+  function hideStorageError(){
+    document.getElementById('storage-error-banner').classList.remove('show');
+  }
+
+  // Store error codes that retrying can never fix (see the db capability contract).
+  const NON_RETRYABLE = ['invalid_argument','quota_exceeded','revoked','not_granted',
+                         'capability_disabled','capability_removed','transform_error'];
+  function isRetryable(e){ return !(e && e.code && NON_RETRYABLE.indexOf(e.code) !== -1); }
+
+  async function withRetry(fn, attempts, delayMs){
+    let lastErr = null;
+    for (let i=0; i<attempts; i++){
+      try{
+        const result = await fn();
+        if (result) return result;
+        lastErr = new Error('storage call returned a falsy result');
+      }catch(e){
+        lastErr = e;
+        if (!isRetryable(e)) break;
+      }
+      if (i < attempts-1) await new Promise(r=> setTimeout(r, delayMs + Math.floor(Math.random()*delayMs)));
+    }
+    throw lastErr;
+  }
+  // Reads may legitimately resolve null (nothing saved yet), so only thrown errors are retried.
+  async function readWithRetry(key, attempts, delayMs){
+    attempts = attempts || 3; delayMs = delayMs == null ? 400 : delayMs;
+    let lastErr = null;
+    for (let i=0; i<attempts; i++){
+      try{ return await storageAdapter.get(key); }
+      catch(e){ lastErr = e; if (!isRetryable(e)) break; }
+      if (i < attempts-1) await new Promise(r=> setTimeout(r, delayMs + Math.floor(Math.random()*delayMs)));
+    }
+    throw lastErr;
+  }
+  function queueWrite(key, value, ts){
+    writesInFlight[key] = (writesInFlight[key] || 0) + 1;
+    const prev = writeChains[key] || Promise.resolve();
+    const next = prev.catch(()=>{}).then(()=> withRetry(()=> storageAdapter.set(key, value, ts), 3, 400));
+    writeChains[key] = next;
+    return next.finally(()=>{ writesInFlight[key] -= 1; });
+  }
+
+  // ---------- Undo toast ----------
+  let undoAction = null;
+  let undoTimer = null;
+  const undoToast = document.getElementById('undo-toast');
+  function showToast(label){
+    undoAction = null;
+    document.getElementById('undo-toast-label').textContent = label;
+    document.getElementById('undo-btn').style.display = 'none';
+    undoToast.classList.add('show');
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(()=>{ undoToast.classList.remove('show'); }, 5000);
+  }
+  function showUndoToast(label, restoreFn){
+    undoAction = restoreFn;
+    document.getElementById('undo-toast-label').textContent = label;
+    document.getElementById('undo-btn').style.display = '';
+    undoToast.classList.add('show');
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(()=>{ undoToast.classList.remove('show'); undoAction = null; }, 6000);
+  }
+  document.getElementById('undo-btn').addEventListener('click', async ()=>{
+    if (!undoAction) return;
+    const fn = undoAction;
+    undoAction = null;
+    clearTimeout(undoTimer);
+    undoToast.classList.remove('show');
+    await fn();
+  });
+  let viewDate = new Date(); viewDate.setDate(1);
+  let entries = [];      // {id, from, to, status, country, mode, fromCountry, toCountry}
+  // Owner details built into the app. They fill any blank profile field, so they appear on every
+  // device and browser, in a downloaded copy, and even if saved data is ever lost. Editing them in
+  // the app still works (the saved value is shown); clearing a field brings the built-in value back.
+  const BUILT_IN_PROFILE = Object.freeze({});
+  function withBuiltIns(p){
+    const out = Object.assign({}, (p && typeof p === 'object' && !Array.isArray(p)) ? p : {});
+    Object.keys(BUILT_IN_PROFILE).forEach(k=>{
+      if (typeof out[k] !== 'string' || !out[k].trim()) out[k] = BUILT_IN_PROFILE[k];
+    });
+    return out;
+  }
+  let profile = withBuiltIns({});
+  const ENTRIES_KEY = 'sa-tracker-entries';
+  const PROFILE_KEY = 'sa-tracker-profile';
+  const TITLE_KEY = 'sa-tracker-title';
+  const DOCS_KEY = 'sa-tracker-documents';   // list of documents on record (the files themselves are stored in pieces)
+  const META_KEY = 'sa-tracker-meta';        // when backups were last downloaded / uploaded
+  let documents = [];
+  let backupMeta = {};
+  const DEFAULT_TITLE = 'SA Days Tracker';
+  let appTitle = DEFAULT_TITLE;
+  const MS_DAY = 86400000;
+  const MIN_TAX_YEAR = 2026; // tax years before this are complete and in good standing — no longer shown
+
+  function toDateOnly(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function parseISO(s){ const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+  function fmtISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function fmtDisplay(d){ return d.toLocaleDateString('en-ZA', {day:'2-digit', month:'short', year:'numeric'}); }
+  function dayCount(a,b){ return Math.round((b-a)/MS_DAY) + 1; }
+  function escapeHtml(str){
+    return String(str==null ? '' : str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  function newEntryId(){
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    // Fallback for older browsers without crypto.randomUUID: widen the random
+    // portion well beyond the old 4-char suffix to make collisions negligible
+    // even under rapid back-to-back generation.
+    return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10) + Math.random().toString(36).slice(2,10);
+  }
+  function yearsSpanned(fromISO, toISO){
+    const s = taxYearStart(parseISO(fromISO)), e = taxYearStart(parseISO(toISO));
+    const ys = [];
+    for (let y = s; y <= e; y++) ys.push(y);
+    return ys;
+  }
+
+  function taxYearStart(d){ return d.getMonth() >= 2 ? d.getFullYear() : d.getFullYear()-1; }
+  function taxYearRange(startYear){
+    return { start: new Date(startYear,2,1), end: new Date(startYear+1,1, new Date(startYear+1,2,0).getDate()) };
+  }
+  function taxYearLabel(y){ return y + '/' + String(y+1).slice(-2); }
+
+  // ---------- Login & encryption ----------
+  // Everything the app saves is encrypted (AES-256-GCM) with a random data key. That key is only
+  // ever stored locked: once with the password and once with each recovery code (PBKDF2-SHA256).
+  // Without the password or a code, the saved data can't be read by anyone.
+  const VAULT_KEY = 'sa-tracker-vault';
+  const PW_ITERATIONS = 600000;
+  const CODE_ITERATIONS = 100000;       // codes are long random strings, so fewer rounds are just as strong
+  const CODE_COUNT = 8;
+  const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'; // no 0/O or 1/I/L mix-ups
+  const IDLE_LOCK_MS = 10 * 60 * 1000;
+  const MIN_PASSWORD = 8;
+  let vault = null, dataKey = null, dataKeyRaw = null, unlocked = false, authBusy = false;
+  let failedAttempts = 0, lockoutUntil = 0, lastActivity = Date.now();
+  let recoveryState = null;   // the unlocked key + which code was used, between "code accepted" and "new password saved"
+  const te = new TextEncoder(), td = new TextDecoder();
+  const CAN_COMPRESS = typeof CompressionStream !== 'undefined' && typeof DecompressionStream !== 'undefined';
+
+  function randBytes(n){ const a = new Uint8Array(n); crypto.getRandomValues(a); return a; }
+  async function deriveKek(secret, saltB64, iterations){
+    const base = await crypto.subtle.importKey('raw', te.encode(secret), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name:'PBKDF2', salt: base64ToBytes(saltB64), iterations: iterations, hash:'SHA-256' },
+      base, { name:'AES-GCM', length:256 }, false, ['encrypt', 'decrypt']);
+  }
+  async function wrapRaw(raw, secret, iterations){
+    const salt = bytesToBase64(randBytes(16)), iv = randBytes(12);
+    const kek = await deriveKek(secret, salt, iterations);
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv: iv }, kek, raw));
+    return { salt: salt, iv: bytesToBase64(iv), ct: bytesToBase64(ct), iter: iterations };
+  }
+  async function unwrapRaw(sealed, secret){
+    try{
+      const kek = await deriveKek(secret, sealed.salt, sealed.iter);
+      return new Uint8Array(await crypto.subtle.decrypt({ name:'AES-GCM', iv: base64ToBytes(sealed.iv) }, kek, base64ToBytes(sealed.ct)));
+    }catch(e){ return null; }
+  }
+  async function useDataKey(raw){
+    dataKeyRaw = raw;
+    dataKey = await crypto.subtle.importKey('raw', raw, { name:'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  }
+  async function streamBytes(bytes, transform){
+    return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(transform)).arrayBuffer());
+  }
+  // 'enc2:' = compressed then encrypted (lists and profile); 'enc1:' = encrypted only (PDF pieces)
+  async function seal(plain, compress){
+    if (!dataKey) throw new Error('locked');
+    let bytes = te.encode(String(plain)), tag = 'enc1:';
+    if (compress && CAN_COMPRESS){ bytes = await streamBytes(bytes, new CompressionStream('gzip')); tag = 'enc2:'; }
+    const iv = randBytes(12);
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv: iv }, dataKey, bytes));
+    const out = new Uint8Array(12 + ct.length); out.set(iv, 0); out.set(ct, 12);
+    return tag + bytesToBase64(out);
+  }
+  // Returns { plain, legacy }. legacy = saved before the login existed (unencrypted).
+  async function openStored(v){
+    if (typeof v === 'string' && (v.startsWith('enc1:') || v.startsWith('enc2:'))){
+      if (!dataKey) throw new Error('locked');
+      const all = base64ToBytes(v.slice(5));
+      let pt = new Uint8Array(await crypto.subtle.decrypt({ name:'AES-GCM', iv: all.subarray(0, 12) }, dataKey, all.subarray(12)));
+      if (v.startsWith('enc2:')) pt = await streamBytes(pt, new DecompressionStream('gzip'));
+      return { plain: td.decode(pt), legacy: false };
+    }
+    return { plain: v, legacy: true };
+  }
+  function validVault(p){
+    const ok = (w)=> !!w && typeof w.salt === 'string' && typeof w.iv === 'string' && typeof w.ct === 'string' && Number.isInteger(w.iter) && w.iter > 0;
+    return !!(p && p.v === 1 && typeof p.username === 'string' && ok(p.pw) && Array.isArray(p.codes) && p.codes.every(ok));
+  }
+  async function loadVault(){
+    let candidate = null;
+    const st = await loadKey(VAULT_KEY, (v)=>{ const p = JSON.parse(v); if (!validVault(p)) throw new Error('unreadable login record'); candidate = p; }, { raw:true });
+    if (candidate) vault = candidate;
+    if (st === 'push') await saveVault();
+    return st;
+  }
+  async function saveVault(){ vault.updated = new Date().toISOString(); return persist(VAULT_KEY, JSON.stringify(vault), { raw:true }); }
+  function normUser(u){ return String(u || '').trim().toLowerCase(); }
+  function normCode(c){ return String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+  function makeCode(){
+    let out = '';
+    while (out.length < 12){
+      for (const x of randBytes(24)){ if (x < 248 && out.length < 12) out += CODE_ALPHABET[x % 31]; } // 248 = 8 x 31: no bias
+    }
+    return out.slice(0, 4) + '-' + out.slice(4, 8) + '-' + out.slice(8, 12);
+  }
+  async function makeCodeEntries(raw){
+    const codes = [], wrapped = [];
+    for (let i = 0; i < CODE_COUNT; i++){
+      const code = makeCode(); codes.push(code);
+      wrapped.push(Object.assign({ id: newEntryId() }, await wrapRaw(raw, normCode(code), CODE_ITERATIONS)));
+    }
+    return { codes: codes, wrapped: wrapped };
+  }
+  function codesFileText(codes){
+    return 'SA Days Tracker - recovery codes\r\nUsername: ' + (vault ? vault.username : '') + '\r\nCreated: ' + fmtDateTime(new Date().toISOString()) + '\r\n\r\n' +
+      codes.map((c, i)=> (i + 1) + '.  ' + c).join('\r\n') + '\r\n\r\n' +
+      'Each code works once. If you forget your password, choose "Forgot password?" on the sign-in screen and enter one.\r\n' +
+      'Keep this file private and somewhere other than this device (for example your Dropbox, or print it).\r\n';
+  }
+  function usernameProblem(u){ return u.trim().length < 2 ? 'Choose a username (at least 2 characters).' : ''; }
+  function passwordProblem(pw, pw2){
+    if (pw.length < MIN_PASSWORD) return 'Use a password of at least ' + MIN_PASSWORD + ' characters.';
+    if (pw !== pw2) return 'The two passwords don’t match.';
+    return '';
+  }
+  function lockoutMessage(){
+    const secs = Math.ceil((lockoutUntil - Date.now()) / 1000);
+    return secs > 0 ? 'Too many wrong attempts — wait ' + secs + ' seconds and try again.' : '';
+  }
+  function noteFailure(){
+    failedAttempts++;
+    if (failedAttempts % 5 === 0) lockoutUntil = Date.now() + 30000;
+  }
+
+  // ---- screens ----
+  const authOverlay = document.getElementById('auth-overlay');
+  const authCard = document.getElementById('auth-card');
+  const BRAND = '<div class="auth-brand">SA Days Tracker</div>';
+  const AUTH_SCREENS = {
+    loading: BRAND + '<p class="auth-sub" id="auth-loading-text">Opening…</p>',
+    nocrypto: BRAND + '<h2 class="auth-title">This browser can’t lock the app</h2><p class="auth-sub">It doesn’t support the encryption the login needs. Please open the app in an up-to-date Chrome or Safari.</p>',
+    unreachable: BRAND + '<h2 class="auth-title">Can’t open your data right now</h2><p class="auth-sub" id="auth-msg"></p><button class="auth-btn" id="auth-retry" type="button">Try again</button>',
+    setup: BRAND + '<h2 class="auth-title">Create your login</h2>' +
+      '<p class="auth-sub">Choose a username and password. Everything the app saves will be encrypted and opens only with your password (or a recovery code).</p>' +
+      '<p class="auth-sub small" id="auth-note"></p>' +
+      '<form id="auth-form" autocomplete="on"><label>Username<input id="auth-user" autocomplete="username" maxlength="60" spellcheck="false" autocapitalize="none" required></label>' +
+      '<label>Password (at least 8 characters)<input id="auth-pass" type="password" autocomplete="new-password" required></label>' +
+      '<label>Confirm password<input id="auth-pass2" type="password" autocomplete="new-password" required></label>' +
+      '<div class="auth-error" id="auth-error"></div><button class="auth-btn" id="auth-submit" type="submit">Create login</button></form>',
+    codes: '<h2 class="auth-title">Your recovery codes</h2>' +
+      '<p class="auth-sub">If you forget your password, one of these codes lets you choose a new one. Each code works <b>once</b>. This is the only time they’re shown.</p>' +
+      '<ol class="code-list" id="auth-codes"></ol>' +
+      '<div class="auth-row"><button type="button" class="auth-btn secondary" id="auth-codes-dl">⬇ Download codes</button><button type="button" class="auth-btn secondary" id="auth-codes-copy">Copy codes</button></div>' +
+      '<p class="auth-sub small">Keep them somewhere other than this device — your Dropbox, or a printout. Without your password and these codes the saved data can’t be opened (a backup file can still restore it).</p>' +
+      '<label class="auth-check"><input type="checkbox" id="auth-codes-ok"> I’ve saved my recovery codes</label>' +
+      '<div class="auth-error" id="auth-error"></div><button class="auth-btn" id="auth-codes-done" type="button" disabled>Continue</button>',
+    login: BRAND + '<h2 class="auth-title">Sign in</h2><p class="auth-sub" id="auth-note"></p>' +
+      '<form id="auth-form" autocomplete="on"><label>Username<input id="auth-user" autocomplete="username" spellcheck="false" autocapitalize="none" required></label>' +
+      '<label>Password<input id="auth-pass" type="password" autocomplete="current-password" required></label>' +
+      '<div class="auth-error" id="auth-error"></div><button class="auth-btn" id="auth-submit" type="submit">Sign in</button></form>' +
+      '<button class="auth-link" id="auth-forgot" type="button">Forgot password?</button>',
+    recover: BRAND + '<h2 class="auth-title">Forgot password</h2><p class="auth-sub">Enter one of your recovery codes. Each code can only be used once.</p>' +
+      '<form id="auth-form"><label>Recovery code<input id="auth-code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX" required></label>' +
+      '<div class="auth-error" id="auth-error"></div><button class="auth-btn" id="auth-submit" type="submit">Continue</button></form>' +
+      '<button class="auth-link" id="auth-back" type="button">Back to sign in</button><button class="auth-link danger" id="auth-startover" type="button">Lost your recovery codes too?</button>',
+    reset: BRAND + '<h2 class="auth-title">Choose a new password</h2><p class="auth-sub" id="auth-note"></p>' +
+      '<form id="auth-form" autocomplete="on"><label>Username<input id="auth-user" autocomplete="username" spellcheck="false" autocapitalize="none" required></label>' +
+      '<label>New password (at least 8 characters)<input id="auth-pass" type="password" autocomplete="new-password" required></label>' +
+      '<label>Confirm new password<input id="auth-pass2" type="password" autocomplete="new-password" required></label>' +
+      '<div class="auth-error" id="auth-error"></div><button class="auth-btn" id="auth-submit" type="submit">Save and sign in</button></form>',
+    startover: BRAND + '<h2 class="auth-title">Start over</h2>' +
+      '<p class="auth-sub">Only do this if you’ve lost <b>both</b> your password and all your recovery codes. It erases the locked data so you can create a new login — that data can’t be opened without them anyway. Afterwards, use <b>Upload Backup</b> on the Personal Info tab to bring your data back from your latest backup file.</p>' +
+      '<p class="auth-sub small" id="auth-note"></p>' +
+      '<form id="auth-form"><label>Type START OVER to confirm<input id="auth-confirm" autocomplete="off" autocapitalize="characters" spellcheck="false" required></label>' +
+      '<div class="auth-error" id="auth-error"></div><button class="auth-btn danger" id="auth-submit" type="submit">Erase and start over</button></form>' +
+      '<button class="auth-link" id="auth-back" type="button">Back to sign in</button>',
+    change: '<h2 class="auth-title">Change username or password</h2>' +
+      '<form id="auth-form" autocomplete="on"><label>Current password<input id="auth-cur" type="password" autocomplete="current-password" required></label>' +
+      '<label>Username<input id="auth-user" autocomplete="username" spellcheck="false" autocapitalize="none" required></label>' +
+      '<label>New password (leave blank to keep it)<input id="auth-pass" type="password" autocomplete="new-password"></label>' +
+      '<label>Confirm new password<input id="auth-pass2" type="password" autocomplete="new-password"></label>' +
+      '<div class="auth-error" id="auth-error"></div><button class="auth-btn" id="auth-submit" type="submit">Save</button></form>' +
+      '<button class="auth-link" id="auth-cancel" type="button">Cancel</button>',
+    newcodes: '<h2 class="auth-title">New recovery codes</h2><p class="auth-sub">This replaces all your recovery codes — the old ones stop working straight away.</p>' +
+      '<form id="auth-form"><label>Current password<input id="auth-cur" type="password" autocomplete="current-password" required></label>' +
+      '<div class="auth-error" id="auth-error"></div><button class="auth-btn" id="auth-submit" type="submit">Create new codes</button></form>' +
+      '<button class="auth-link" id="auth-cancel" type="button">Cancel</button>'
+  };
+  function authEl(id){ return document.getElementById(id); }
+  function setAuthText(id, text){ const el = authEl(id); if (el) el.textContent = text || ''; }
+  function setAuthError(msg){ setAuthText('auth-error', msg); }
+  function setAuthBusy(on, label){
+    authBusy = on;
+    authCard.querySelectorAll('button, input').forEach(el=> { el.disabled = on; });
+    const b = authEl('auth-submit');
+    if (b){ if (on){ b.dataset.label = b.dataset.label || b.textContent; b.textContent = label || 'Working…'; } else if (b.dataset.label){ b.textContent = b.dataset.label; } }
+  }
+  function hideAuth(){ authOverlay.classList.remove('show'); authOverlay.dataset.screen = ''; authCard.innerHTML = ''; }
+  function on(id, ev, fn){ const el = authEl(id); if (el) el.addEventListener(ev, fn); }
+  function showAuth(screen, data){
+    data = data || {};
+    authBusy = false;
+    authOverlay.dataset.screen = screen;
+    authCard.innerHTML = AUTH_SCREENS[screen];
+    authOverlay.classList.add('show');
+    authOverlay.scrollTop = 0;
+    if (screen === 'unreachable'){
+      setAuthText('auth-msg', lastStorageErrorCode === 'not_granted'
+        ? 'Claude asked for permission to save this app’s data and it wasn’t allowed. Reload the page and choose Allow when asked. Nothing has been changed.'
+        : 'Couldn’t reach your Claude account to check your login. Check your internet connection and try again. Nothing has been changed.');
+    }
+    if (screen === 'setup') setAuthText('auth-note', data.note || (storageMode === 'cloud'
+      ? 'This login protects your data in your Claude account and works on every device where you open this link.'
+      : 'This login is for this browser on this device. On another device you’ll create a login there and load your backup.'));
+    if (screen === 'login') setAuthText('auth-note', data.note || '');
+    if (screen === 'reset') setAuthText('auth-note', data.note || '');
+    if (screen === 'startover') setAuthText('auth-note', storageMode === 'cloud' ? 'This erases the app’s data in your Claude account, for every device.' : 'This erases the app’s data in this browser on this device.');
+    if ((screen === 'reset' || screen === 'change') && vault){ const u = authEl('auth-user'); if (u) u.value = vault.username; }
+    if (screen === 'codes'){
+      const list = authEl('auth-codes');
+      (data.codes || []).forEach(c=>{ const li = document.createElement('li'); li.textContent = c; list.appendChild(li); });
+      on('auth-codes-ok', 'change', ()=>{ authEl('auth-codes-done').disabled = !authEl('auth-codes-ok').checked; });
+      on('auth-codes-dl', 'click', async ()=>{
+        const r = await offerDownload('sa-days-tracker-recovery-codes.txt', codesFileText(data.codes), 'text/plain');
+        setAuthError(r === 'failed' ? 'The file couldn’t be saved — use Copy codes, or write them down.' : '');
+      });
+      on('auth-codes-copy', 'click', async ()=>{
+        try{ await navigator.clipboard.writeText(codesFileText(data.codes)); setAuthError(''); authEl('auth-codes-copy').textContent = 'Copied ✓'; }
+        catch(e){ setAuthError('Copying isn’t allowed here — use Download codes, or write them down.'); }
+      });
+      on('auth-codes-done', 'click', ()=>{
+        if (!authEl('auth-codes-ok').checked) return;
+        if (data.inApp){ hideAuth(); renderSecurityPanel(); showToast('New recovery codes saved — the old ones no longer work.'); }
+        else afterUnlock();
+      });
+    }
+    const form = authEl('auth-form');
+    if (form) form.addEventListener('submit', (e)=>{ e.preventDefault(); if (!authBusy) authSubmit(screen); });
+    on('auth-retry', 'click', ()=> startAuth());
+    on('auth-forgot', 'click', ()=> showAuth('recover'));
+    on('auth-back', 'click', ()=> showAuth('login'));
+    on('auth-startover', 'click', ()=> showAuth('startover'));
+    on('auth-cancel', 'click', ()=> hideAuth());
+    // Place the cursor straight away (never later: a delayed focus could jump boxes while someone is already typing).
+    const first = authCard.querySelector('input:not([type=checkbox])');
+    if (first){ try{ (screen === 'login' && first.value ? authEl('auth-pass') : first).focus({ preventScroll: true }); }catch(e){} }
+  }
+
+  async function authSubmit(screen){
+    const val = (id)=> (authEl(id) ? authEl(id).value : '');
+    setAuthError('');
+    if ((screen === 'login' || screen === 'recover') && lockoutMessage()){ setAuthError(lockoutMessage()); return; }
+
+    if (screen === 'setup'){
+      const user = val('auth-user'), pw = val('auth-pass'), pw2 = val('auth-pass2');
+      const problem = usernameProblem(user) || passwordProblem(pw, pw2);
+      if (problem){ setAuthError(problem); return; }
+      setAuthBusy(true, 'Securing your data…');
+      const raw = randBytes(32);
+      const made = await makeCodeEntries(raw);
+      const now = new Date().toISOString();
+      vault = { v:1, kdf:'PBKDF2-SHA256 / AES-256-GCM', username: user.trim(), created: now, updated: now,
+                pw: await wrapRaw(raw, pw, PW_ITERATIONS), codes: made.wrapped, codesCreated: now, codesIssued: CODE_COUNT };
+      if (!(await saveVault())){
+        vault = null; setAuthBusy(false);
+        setAuthError('Your login couldn’t be saved — check your connection and try again. Nothing was changed.');
+        return;
+      }
+      await useDataKey(raw);
+      showAuth('codes', { codes: made.codes });
+      return;
+    }
+
+    if (screen === 'login'){
+      const user = val('auth-user'), pw = val('auth-pass');
+      setAuthBusy(true, 'Signing in…');
+      const raw = normUser(user) === normUser(vault.username) ? await unwrapRaw(vault.pw, pw) : null;
+      if (!raw){ noteFailure(); setAuthBusy(false); setAuthError(lockoutMessage() || 'Username or password is incorrect.'); return; }
+      failedAttempts = 0;
+      await useDataKey(raw);
+      afterUnlock();
+      return;
+    }
+
+    if (screen === 'recover'){
+      const code = normCode(val('auth-code'));
+      setAuthBusy(true, 'Checking code…');
+      let found = null;
+      if (code.length === 12){
+        for (const c of vault.codes){ const raw = await unwrapRaw(c, code); if (raw){ found = { raw: raw, codeId: c.id }; break; } }
+      }
+      if (!found){ noteFailure(); setAuthBusy(false); setAuthError(lockoutMessage() || 'That code isn’t valid, or it has already been used.'); return; }
+      failedAttempts = 0;
+      recoveryState = found;
+      const left = vault.codes.length - 1;
+      showAuth('reset', { note: 'Code accepted. It can’t be used again — you’ll have ' + left + ' recovery code' + (left === 1 ? '' : 's') + ' left.' });
+      return;
+    }
+
+    if (screen === 'reset'){
+      if (!recoveryState){ showAuth('login'); return; }
+      const user = val('auth-user'), pw = val('auth-pass'), pw2 = val('auth-pass2');
+      const problem = usernameProblem(user) || passwordProblem(pw, pw2);
+      if (problem){ setAuthError(problem); return; }
+      setAuthBusy(true, 'Saving…');
+      const before = JSON.parse(JSON.stringify(vault));
+      vault.username = user.trim();
+      vault.pw = await wrapRaw(recoveryState.raw, pw, PW_ITERATIONS);
+      vault.codes = vault.codes.filter(c=> c.id !== recoveryState.codeId);
+      if (!(await saveVault())){
+        vault = before; setAuthBusy(false);
+        setAuthError('The new password couldn’t be saved — check your connection and try again. Your code hasn’t been used up.');
+        return;
+      }
+      const raw = recoveryState.raw; recoveryState = null;
+      await useDataKey(raw);
+      const left = vault.codes.length;
+      afterUnlock('Password changed. ' + left + ' recovery code' + (left === 1 ? '' : 's') + ' left' + (left <= 2 ? ' — create new ones in Personal Info.' : '.'));
+      return;
+    }
+
+    if (screen === 'startover'){
+      if (val('auth-confirm').trim().toUpperCase() !== 'START OVER'){ setAuthError('Type START OVER exactly to confirm.'); return; }
+      setAuthBusy(true, 'Erasing…');
+      try{ await eraseEverything(); }
+      catch(e){ setAuthBusy(false); setAuthError('Couldn’t erase everything — check your connection and try again.'); return; }
+      showAuth('setup', { note: 'Erased. Create a new login, then use Upload Backup on the Personal Info tab to bring your data back.' });
+      return;
+    }
+
+    if (screen === 'change'){
+      const cur = val('auth-cur'), user = val('auth-user'), pw = val('auth-pass'), pw2 = val('auth-pass2');
+      const problem = usernameProblem(user) || ((pw || pw2) ? passwordProblem(pw, pw2) : '');
+      if (problem){ setAuthError(problem); return; }
+      setAuthBusy(true, 'Saving…');
+      if (!(await unwrapRaw(vault.pw, cur))){ setAuthBusy(false); setAuthError('Your current password is incorrect.'); return; }
+      const before = JSON.parse(JSON.stringify(vault));
+      vault.username = user.trim();
+      if (pw) vault.pw = await wrapRaw(dataKeyRaw, pw, PW_ITERATIONS);
+      if (!(await saveVault())){ vault = before; setAuthBusy(false); setAuthError('Couldn’t save — check your connection and try again. Nothing was changed.'); return; }
+      hideAuth(); renderSecurityPanel();
+      showToast(pw ? 'Login updated — use your new password next time.' : 'Username updated.');
+      return;
+    }
+
+    if (screen === 'newcodes'){
+      setAuthBusy(true, 'Creating codes…');
+      if (!(await unwrapRaw(vault.pw, val('auth-cur')))){ setAuthBusy(false); setAuthError('Your current password is incorrect.'); return; }
+      const before = JSON.parse(JSON.stringify(vault));
+      const made = await makeCodeEntries(dataKeyRaw);
+      vault.codes = made.wrapped; vault.codesCreated = new Date().toISOString(); vault.codesIssued = CODE_COUNT;
+      if (!(await saveVault())){ vault = before; setAuthBusy(false); setAuthError('Couldn’t save — check your connection and try again. Your old codes still work.'); return; }
+      showAuth('codes', { codes: made.codes, inApp: true });
+      return;
+    }
+  }
+
+  async function startAuth(){
+    showAuth('loading');
+    const st = await loadVault();
+    if (st === 'error'){ showAuth('unreachable'); return; }
+    if (st === 'missing'){ showAuth('setup'); return; }
+    showAuth('login', { note: st === 'error-mirror' ? 'Couldn’t reach your Claude account — after signing in you’ll see the copy saved in this browser.' : '' });
+  }
+
+  async function afterUnlock(note){
+    unlocked = true; lastActivity = Date.now(); failedAttempts = 0;
+    hideAuth();
+    document.body.classList.remove('locked');
+    renderSecurityPanel();
+    dataReady = false; renderAllViews();
+    await loadAllData();
+    dataReady = !dataLoadFailed || showingBrowserCopy; // never show a misleading empty list
+    renderAllViews();
+    if (!dataLoadFailed){
+      saveIndicator.textContent = syncedLabel();
+      startLiveSync();
+      await migrateLegacyDocs();
+    }
+    document.body.dataset.ready = 'yes';   // fully signed in and loaded
+    if (note) showToast(note);
+  }
+
+  // PDFs uploaded before the login existed are re-stored encrypted on first sign-in.
+  async function migrateLegacyDocs(){
+    const legacy = documents.filter(d=> !d.enc);
+    if (!legacy.length || !dataKey) return;
+    for (const old of legacy){
+      try{
+        const b64 = await readDocBase64(old);
+        const rec = Object.assign({}, old, { id: newEntryId(), chunks: Math.max(1, Math.ceil(b64.length / DOC_CHUNK)), enc: true });
+        await writeDocChunks(rec.id, b64);
+        documents = documents.map(d=> d.id === old.id ? rec : d);
+        if (await saveDocumentsIndex()) deleteDocChunks(old);
+        else { documents = documents.map(d=> d.id === rec.id ? old : d); deleteDocChunks(rec); return; }
+      }catch(e){ return; } // tried again next time
+    }
+    renderDocuments();
+  }
+
+  async function lockApp(reason){
+    if (!unlocked) return;
+    unlocked = false;
+    delete document.body.dataset.ready;
+    document.body.classList.add('locked');
+    showAuth('loading'); setAuthText('auth-loading-text', 'Locking…');
+    try{ await Promise.race([Promise.allSettled(Object.values(writeChains)), new Promise(r=> setTimeout(r, 15000))]); }catch(e){}
+    try{ closeEntryForm(); }catch(e){}
+    try{ closeProfileForm(); }catch(e){}
+    try{ closePdfScopeModal(); }catch(e){}
+    if (confirmResolver) closeConfirm(false);
+    undoToast.classList.remove('show'); undoAction = null;
+    // drop everything decrypted from memory
+    dataKey = null; dataKeyRaw = null; recoveryState = null;
+    entries = []; profile = withBuiltIns({}); documents = []; backupMeta = {}; appTitle = DEFAULT_TITLE;
+    Object.keys(lastKnownValue).forEach(k=> { delete lastKnownValue[k]; });
+    dataReady = false; dataLoadFailed = false; showingBrowserCopy = false;
+    hideStorageError();
+    renderAllViews();
+    showAuth('login', { note: reason === 'idle' ? 'Locked after 10 minutes without use.' : 'Locked.' });
+  }
+
+  // Lost password AND codes: erase the locked data so a new login can be created.
+  async function eraseEverything(){
+    const keys = [VAULT_KEY, ENTRIES_KEY, PROFILE_KEY, TITLE_KEY, DOCS_KEY, META_KEY];
+    for (const k of keys){
+      await withRetry(()=> storageAdapter.remove(k), 3, 300);
+      try{ window.localStorage.removeItem(LS_PREFIX + k); window.localStorage.removeItem(LS_PREFIX + k + '::meta'); }catch(e){}
+      delete lastKnownValue[k];
+    }
+    if (storageMode === 'local'){ try{ await idbRun('readwrite', st=> st.clear()); }catch(e){} }
+    if (storageMode === 'cloud'){
+      try{
+        const qs = await cloudDb.collection('data/users/' + cloudUid).get();
+        for (const d of qs.docs){ if (String(d.id).indexOf('sa-doc-') === 0){ try{ await cloudRef(d.id).delete(); }catch(e){} } }
+      }catch(e){ /* leftover pieces can't be read without the old key */ }
+    }
+    vault = null; dataKey = null; dataKeyRaw = null;
+  }
+
+  function renderSecurityPanel(){
+    const active = storageApiPresent() && !!vault && unlocked;
+    document.getElementById('security-panel').style.display = active ? '' : 'none';
+    document.getElementById('lock-btn-header').style.display = active ? '' : 'none';
+    if (!active) return;
+    const left = vault.codes.length;
+    document.getElementById('security-user').textContent = vault.username;
+    const codesEl = document.getElementById('security-codes');
+    codesEl.textContent = left + ' of ' + (vault.codesIssued || CODE_COUNT) + ' unused';
+    codesEl.classList.toggle('warn', left <= 2);
+    document.getElementById('security-low').style.display = left <= 2 ? '' : 'none';
+    document.getElementById('security-scope').textContent = storageMode === 'cloud'
+      ? 'The same login works on every device that opens your claude.ai link.'
+      : 'This login is for this browser on this device.';
+  }
+  document.getElementById('sec-change-btn').addEventListener('click', ()=> showAuth('change'));
+  document.getElementById('sec-codes-btn').addEventListener('click', ()=> showAuth('newcodes'));
+  document.getElementById('sec-lock-btn').addEventListener('click', ()=> lockApp('manual'));
+  document.getElementById('lock-btn-header').addEventListener('click', ()=> lockApp('manual'));
+  ['pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll', 'mousemove'].forEach(ev=>
+    window.addEventListener(ev, ()=>{ lastActivity = Date.now(); }, { passive:true, capture:true }));
+  function checkIdle(){ if (unlocked && Date.now() - lastActivity >= IDLE_LOCK_MS) lockApp('idle'); }
+  setInterval(checkIdle, 15000);
+  document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) checkIdle(); });
+
+  // ---------- Storage ----------
+  async function persist(key, value, opts){
+    const raw = !!(opts && opts.raw);
+    if (!raw && !dataKey) return false;   // locked: nothing may be saved unencrypted
+    saveIndicator.textContent = '\u25cf saving\u2026';
+    if (dataLoadFailed){
+      saveIndicator.textContent = '\u25cf not saved';
+      flashStorageError(showingBrowserCopy ? 'load-failed-mirror' : 'load-failed');
+      return false;
+    }
+    if (!storageApiPresent()){
+      saveIndicator.textContent = '\u25cf not saved';
+      flashStorageError('unavailable');
+      return false;
+    }
+    const ts = new Date().toISOString();
+    let stored;
+    try{ stored = raw ? value : await seal(value, true); }
+    catch(e){ saveIndicator.textContent = '\u25cf not saved'; flashStorageError('write-failed'); return false; }
+    if (storageMode === 'cloud') writeMirror(key, stored, ts, false);
+    try{
+      lastKnownValue[key] = value;
+      await queueWrite(key, stored, ts);
+      if (storageMode === 'cloud') markMirrorSynced(key, ts);
+      lastStorageErrorCode = null;
+      saveIndicator.textContent = syncedLabel();
+      hideStorageError();
+      return true;
+    }catch(e){
+      lastStorageErrorCode = (e && e.code) || null;
+      saveIndicator.textContent = (storageMode === 'cloud' && mirrorAvailable) ? '\u25cf saved in browser, not yet Claude' : '\u25cf not saved';
+      flashStorageError(storageMode === 'cloud' && mirrorAvailable ? 'write-failed-mirror' : 'write-failed');
+      return false;
+    }
+  }
+  async function saveEntries(){ return persist(ENTRIES_KEY, JSON.stringify(entries)); }
+  async function saveProfile(){ return persist(PROFILE_KEY, JSON.stringify(profile)); }
+  async function saveTitle(){ return persist(TITLE_KEY, appTitle); }
+
+  function applyEntriesValue(v){
+    const parsed = JSON.parse(v);
+    if (!Array.isArray(parsed)) throw new Error('stored entries are not a list');
+    entries = parsed;
+  }
+  function applyProfileValue(v){
+    const parsed = JSON.parse(v);
+    profile = withBuiltIns(parsed);
+  }
+  function applyTitleValue(v){ appTitle = v || DEFAULT_TITLE; }
+
+  // Returns 'ok' | 'missing' | 'push' | 'error' | 'error-mirror'.
+  //  'push'         : the browser copy holds a newer, unconfirmed edit (made offline) - it wins
+  //                   and is sent to Claude after loading.
+  //  'error-mirror' : Claude couldn't be read, the browser copy is shown instead (saving paused).
+  // Corrupt data counts as an error so it is never overwritten.
+  async function loadKey(key, apply, opts){
+    const raw = !!(opts && opts.raw);
+    const dec = async (v)=> raw ? { plain: v, legacy: false } : openStored(v);
+    const mirror = (storageMode === 'cloud') ? readMirror(key) : null;
+    let res;
+    try{ res = await readWithRetry(key); }
+    catch(e){
+      lastStorageErrorCode = (e && e.code) || null;
+      if (mirror){ try{ const d = await dec(mirror.value); apply(d.plain); lastKnownValue[key] = d.plain; return 'error-mirror'; }catch(_){ } }
+      return 'error';
+    }
+    try{
+      const cloudHas = !!(res && res.value != null);
+      if (storageMode === 'cloud' && mirror){
+        const mirrorIsNewerEdit = !mirror.synced && (!cloudHas || mirror.updatedAt > String(res.updatedAt || ''));
+        if (mirrorIsNewerEdit || !cloudHas){
+          const d = await dec(mirror.value);
+          apply(d.plain);                // an offline edit, or Claude's copy has gone missing
+          return 'push';
+        }
+      }
+      if (!cloudHas) return 'missing';
+      const d = await dec(res.value);   // a value that can't be decrypted counts as an error: never overwritten
+      apply(d.plain);
+      lastKnownValue[key] = d.plain;
+      if (storageMode === 'cloud') writeMirror(key, res.value, res.updatedAt || new Date().toISOString(), true);
+      return (d.legacy && !raw && dataKey) ? 'push' : 'ok'; // saved before the login existed: re-save it encrypted
+    }catch(e){ return 'error'; }
+  }
+  async function loadAllData(){
+    const eState = await loadKey(ENTRIES_KEY, applyEntriesValue);
+    const pState = await loadKey(PROFILE_KEY, applyProfileValue);
+    const tState = await loadKey(TITLE_KEY, applyTitleValue);
+    const dState = await loadKey(DOCS_KEY, applyDocsValue);
+    const mState = await loadKey(META_KEY, applyMetaValue);
+    const states = [eState, pState, tState, dState, mState];
+    dataLoadFailed = states.some(st => st === 'error' || st === 'error-mirror');
+    showingBrowserCopy = dataLoadFailed && states.some(st => st === 'error-mirror'); // show whatever the browser holds; saving stays paused
+    if (dataLoadFailed){
+      saveIndicator.textContent = showingBrowserCopy ? '\u25cf showing browser copy' : '\u25cf not loaded';
+      flashStorageError(showingBrowserCopy ? 'load-failed-mirror' : 'load-failed');
+      return;
+    }
+    // Seed the historical baseline ONLY when nothing has ever been saved. A deliberately
+    // emptied list stays empty.
+    if (eState === 'missing'){
+      entries = BASELINE_ENTRIES.map(e=> Object.assign({}, e));
+      await saveEntries();
+    }
+    // Send any offline edits held in the browser copy up to Claude.
+    if (eState === 'push') await saveEntries();
+    if (pState === 'push') await saveProfile();
+    if (tState === 'push') await saveTitle();
+    if (dState === 'push') await saveDocumentsIndex();
+    if (mState === 'push') await saveMeta();
+  }
+
+  // Cloud mode: if the app is open on two devices, keep each copy current so one can't
+  // overwrite the other's changes with stale data.
+  let liveSyncStarted = false;
+  function startLiveSync(){
+    if (storageMode !== 'cloud' || liveSyncStarted) return;
+    liveSyncStarted = true;
+    const watch = (key, apply, rerender)=>{
+      try{
+        cloudRef(key).onSnapshot(async (snap)=>{
+          if (!unlocked || !dataKey) return;
+          if (!snap.exists || snap.metadata.hasPendingWrites || (writesInFlight[key] || 0) > 0) return;
+          const local = readMirror(key);
+          if (local && !local.synced) return; // this device holds an edit Claude hasn't confirmed: keep it, it's sent on the next save/open
+          const body = snap.data() || {};
+          if (typeof body.value !== 'string') return;
+          try{
+            const d = await openStored(body.value);
+            if (!unlocked || d.plain === lastKnownValue[key]) return;
+            apply(d.plain); lastKnownValue[key] = d.plain;
+            writeMirror(key, body.value, String(body.updatedAt || new Date().toISOString()), true); rerender();
+          }catch(e){ /* ignore a value this device can't read */ }
+        }, ()=>{ /* a dead listener only means no live updates; saving still works */ });
+      }catch(e){}
+    };
+    watch(ENTRIES_KEY, applyEntriesValue, ()=>{ renderCalendar(); renderEntryList(); renderTotals(); });
+    watch(PROFILE_KEY, applyProfileValue, ()=>{ renderProfileView(); renderTotals(); });
+    watch(TITLE_KEY, applyTitleValue, ()=>{ renderTitle(); });
+    watch(DOCS_KEY, applyDocsValue, ()=>{ renderDocuments(); });
+    watch(META_KEY, applyMetaValue, ()=>{ renderBackupMeta(); });
+  }
+
+  function renderAppVersion(){
+    document.getElementById('app-version').textContent =
+      'App version ' + fmtDisplay(parseISO(APP_VERSION)) + ' \u00b7 ' + (storageMode === 'cloud' ? 'opened from your claude.ai link'
+        : storageMode === 'local' ? (HOST_KIND === 'file' ? 'opened as a file' : HOST_KIND === 'github' ? 'opened from your GitHub link' : 'opened from a website')
+        : storageMode === 'claude' ? 'Claude chat preview' : 'not saving');
+  }
+  function renderStorageStatus(){
+    renderAppVersion();
+    const permLink = document.getElementById('open-permanent-link');
+    if (PERMANENT_URL) permLink.href = PERMANENT_URL;
+    permLink.style.display = (storageMode === 'cloud' || !PERMANENT_URL || HOST_KIND !== 'file') ? 'none' : '';
+    const d = storageModeDescription();
+    document.getElementById('storage-status').className = 'storage-status ' + d.cls;
+    document.getElementById('storage-status-title').textContent = d.title;
+    document.getElementById('storage-status-detail').textContent = d.detail;
+  }
+  function renderAllViews(){
+    renderTitle(); renderCalendar(); renderEntryList(); renderTotals(); renderProfileView();
+    renderDocuments(); renderBackupMeta();
+  }
+
+  // ---------- In-page confirm dialog (browser pop-ups are often blocked in hosted pages) ----------
+  let confirmResolver = null;
+  function confirmDialog(message, okLabel, title){
+    return new Promise(resolve=>{
+      if (confirmResolver) confirmResolver(false);
+      confirmResolver = resolve;
+      document.getElementById('confirm-title').textContent = title || 'Please confirm';
+      document.getElementById('confirm-message').textContent = message;
+      document.getElementById('confirm-ok-btn').textContent = okLabel || 'Continue';
+      document.getElementById('confirm-overlay').classList.add('show');
+      document.getElementById('confirm-ok-btn').focus();
+    });
+  }
+  function closeConfirm(result){
+    document.getElementById('confirm-overlay').classList.remove('show');
+    const r = confirmResolver; confirmResolver = null;
+    if (r) r(result);
+  }
+  document.getElementById('confirm-ok-btn').addEventListener('click', ()=> closeConfirm(true));
+  document.getElementById('confirm-cancel-btn').addEventListener('click', ()=> closeConfirm(false));
+  document.getElementById('confirm-overlay').addEventListener('click', (e)=>{
+    if (e.target.id === 'confirm-overlay') closeConfirm(false);
+  });
+  document.addEventListener('keydown', (e)=>{
+    if (e.key !== 'Escape') return;
+    if (authOverlay.classList.contains('show')){
+      if (!authBusy && (authOverlay.dataset.screen === 'change' || authOverlay.dataset.screen === 'newcodes')) hideAuth();
+      return;
+    }
+    if (confirmResolver){ closeConfirm(false); return; }
+    const fw = document.getElementById('entry-form-wrap');
+    if (fw && fw.classList.contains('open')) document.getElementById('entry-cancel-btn').click();
+  });
+
+  // ---------- File downloads (PDF + backups) ----------
+  // Hosted pages must hand files over via the downloads capability; a file opened
+  // locally or the chat preview uses a normal browser download.
+  async function offerDownload(filename, data, mime){
+    if (downloadsNs){
+      try{ await downloadsNs.save({ filename: filename, data: data }); return 'saved'; }
+      catch(e){ return (e && e.code === 'declined') ? 'declined' : 'failed'; }
+    }
+    try{
+      const blob = (typeof Blob !== 'undefined' && data instanceof Blob) ? data : new Blob([data], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=> URL.revokeObjectURL(url), 4000);
+      return 'saved';
+    }catch(e){ return 'failed'; }
+  }
+
+  // ---------- Documents on record (ID & passport PDFs) ----------
+  // Files are stored in your private area (in pieces, as each stored record must stay under
+  // 256 KiB): Claude account on the link, this browser's IndexedDB in a file copy. They're
+  // included in every Download Backup and restored by Upload Backup.
+  const DOC_KINDS = [{ kind:'id', label:'ID Document' }, { kind:'passport', label:'Passport' }];
+  const DOC_MAX_BYTES = 10 * 1024 * 1024;
+  const DOC_CHUNK = 150000;   // leaves room for encryption within the 256 KiB per-record limit
+  const memDocStore = {};
+  let docBusy = false, pendingDocKind = null;
+  function docLabel(kind){ const k = DOC_KINDS.find(x=> x.kind === kind); return k ? k.label : 'Document'; }
+  function chunkKey(docId, n){ return 'sa-doc-' + docId + '-' + n; }
+  function fmtBytes(n){ return n >= 1048576 ? (n/1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n/1024)) + ' KB'; }
+  function fmtDateTime(iso){
+    const d = new Date(iso); if (isNaN(d)) return '\u2014';
+    return fmtDisplay(d) + ', ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+  let idbPromise = null;
+  function idbOpen(){
+    if (!idbPromise){
+      idbPromise = new Promise((resolve, reject)=>{
+        try{
+          const req = indexedDB.open('sa-days-tracker-docs', 1);
+          req.onupgradeneeded = ()=> req.result.createObjectStore('kv');
+          req.onsuccess = ()=> resolve(req.result);
+          req.onerror = ()=> reject(req.error);
+        }catch(e){ reject(e); }
+      });
+      idbPromise.catch(()=>{ idbPromise = null; });
+    }
+    return idbPromise;
+  }
+  async function idbRun(mode, op){
+    const db = await idbOpen();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction('kv', mode);
+      const req = op(tx.objectStore('kv'));
+      tx.oncomplete = ()=> resolve(req ? req.result : undefined);
+      tx.onerror = ()=> reject(tx.error);
+      tx.onabort = ()=> reject(tx.error);
+    });
+  }
+  const docKV = {
+    async set(key, value){
+      const stored = dataKey ? await seal(value, false) : value;
+      if (storageMode === 'local'){ await idbRun('readwrite', st=> st.put(stored, key)); return true; }
+      if (storageMode === 'cloud' || storageMode === 'claude') return storageAdapter.set(key, stored);
+      memDocStore[key] = stored; return true;
+    },
+    async get(key){
+      let v;
+      if (storageMode === 'local'){ v = await idbRun('readonly', st=> st.get(key)); v = typeof v === 'string' ? v : null; }
+      else if (storageMode === 'cloud' || storageMode === 'claude'){ const r = await storageAdapter.get(key); v = (r && typeof r.value === 'string') ? r.value : null; }
+      else v = memDocStore[key] || null;
+      return v === null ? null : (await openStored(v)).plain;
+    },
+    async remove(key){
+      if (storageMode === 'local'){ await idbRun('readwrite', st=> st.delete(key)); return true; }
+      if (storageMode === 'cloud' || storageMode === 'claude'){ await storageAdapter.remove(key); return true; }
+      delete memDocStore[key]; return true;
+    }
+  };
+  function bytesToBase64(bytes){
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  function base64ToBytes(b64){
+    const bin = atob(b64); const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function isPdfBytes(bytes){ // a PDF starts with "%PDF" (allowed within the first 1 KB)
+    const n = Math.min(bytes.length - 4, 1024);
+    for (let i = 0; i <= n; i++) if (bytes[i]===0x25 && bytes[i+1]===0x50 && bytes[i+2]===0x44 && bytes[i+3]===0x46) return true;
+    return false;
+  }
+  async function writeDocChunks(docId, b64, onProgress){
+    const n = Math.max(1, Math.ceil(b64.length / DOC_CHUNK));
+    for (let i = 0; i < n; i++){
+      const piece = b64.slice(i*DOC_CHUNK, (i+1)*DOC_CHUNK);
+      await withRetry(()=> docKV.set(chunkKey(docId, i), piece), 3, 400);
+      if (onProgress) onProgress(i+1, n);
+    }
+    return n;
+  }
+  async function readDocBase64(doc){
+    const parts = [];
+    for (let i = 0; i < doc.chunks; i++){
+      let piece = null, lastErr = null;
+      for (let a = 0; a < 3 && piece === null; a++){
+        try{ piece = await docKV.get(chunkKey(doc.id, i)); if (piece === null) break; }
+        catch(e){ lastErr = e; if (!isRetryable(e)) break; await new Promise(r=> setTimeout(r, 400 + Math.floor(Math.random()*400))); }
+      }
+      if (typeof piece !== 'string') throw (lastErr || new Error('a stored piece of this file is missing'));
+      parts.push(piece);
+    }
+    return parts.join('');
+  }
+  async function deleteDocChunks(doc){
+    for (let i = 0; i < (doc.chunks || 0); i++){ try{ await docKV.remove(chunkKey(doc.id, i)); }catch(e){ /* best effort */ } }
+  }
+  function applyDocsValue(v){
+    const p = JSON.parse(v);
+    if (!Array.isArray(p)) throw new Error('stored document list is not a list');
+    documents = p.filter(d=> d && typeof d.id === 'string' && DOC_KINDS.some(k=> k.kind === d.kind) && Number.isInteger(d.chunks) && d.chunks > 0);
+  }
+  async function saveDocumentsIndex(){ return persist(DOCS_KEY, JSON.stringify(documents)); }
+  function applyMetaValue(v){
+    const p = JSON.parse(v);
+    backupMeta = (p && typeof p === 'object' && !Array.isArray(p)) ? p : {};
+  }
+  async function saveMeta(){ return persist(META_KEY, JSON.stringify(backupMeta)); }
+  function setDocMessage(text, isError){
+    const el = document.getElementById('doc-message');
+    el.textContent = text;
+    el.className = 'backup-message' + (text ? (isError ? ' error' : ' success') : '');
+  }
+  function setDocButtonsDisabled(on){
+    document.querySelectorAll('.doc-slot button').forEach(b=> b.disabled = on);
+  }
+  function renderDocuments(){
+    DOC_KINDS.forEach(({kind})=>{
+      const d = documents.find(x=> x.kind === kind);
+      const info = document.getElementById('doc-info-' + kind);
+      info.textContent = !dataReady ? 'Loading\u2026'
+        : d ? (d.name + ' \u00b7 ' + fmtBytes(d.size) + ' \u00b7 uploaded ' + fmtDateTime(d.uploadedAt))
+        : 'No PDF on record yet';
+      info.classList.toggle('empty', !d);
+      document.getElementById('doc-upload-' + kind).textContent = d ? '\u2b06 Replace PDF' : '\u2b06 Upload PDF';
+      document.getElementById('doc-download-' + kind).style.display = d ? '' : 'none';
+      document.getElementById('doc-remove-' + kind).style.display = d ? '' : 'none';
+    });
+  }
+  function renderBackupMeta(){
+    const parts = ['Last backup downloaded: ' + (backupMeta.lastDownloadedAt ? fmtDateTime(backupMeta.lastDownloadedAt) : 'not yet')];
+    if (backupMeta.lastUploadedAt){
+      parts.push('Last backup uploaded: ' + fmtDateTime(backupMeta.lastUploadedAt) +
+        (backupMeta.lastUploadedMadeAt ? ' (backup made ' + fmtDateTime(backupMeta.lastUploadedMadeAt) + ')' : ''));
+    }
+    document.getElementById('backup-meta').textContent = parts.join(' \u00b7 ');
+  }
+  function safePdfName(d){
+    let n = String(d.name || (d.kind + '.pdf')).replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim() || (d.kind + '.pdf');
+    if (!/\.pdf$/i.test(n)) n += '.pdf';
+    return n;
+  }
+  async function uploadDocument(kind, file){
+    const label = docLabel(kind);
+    setDocMessage('', false);
+    if (dataLoadFailed){ setDocMessage('Your saved data hasn\u2019t loaded yet, so uploads are paused \u2014 press Retry at the top of the page first.', true); return; }
+    if (!file.size){ setDocMessage('That file is empty.', true); return; }
+    if (file.size > DOC_MAX_BYTES){ setDocMessage('That file is ' + fmtBytes(file.size) + ' \u2014 the limit is 10 MB. Scanning at a lower resolution usually fixes this.', true); return; }
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (!isPdfBytes(bytes)){ setDocMessage('That file isn\u2019t a PDF. Please choose a PDF of your ' + label.toLowerCase() + '.', true); return; }
+    const existing = documents.find(d=> d.kind === kind);
+    if (existing){
+      const ok = await confirmDialog('Replace the ' + label.toLowerCase() + ' on record (' + existing.name + ') with ' + file.name + '?', 'Replace', 'Replace ' + label);
+      if (!ok) return;
+    }
+    docBusy = true; setDocButtonsDisabled(true);
+    const b64 = bytesToBase64(bytes);
+    const doc = { id: newEntryId(), kind: kind, name: String(file.name || (kind + '.pdf')).slice(0,120), type: 'application/pdf',
+                  size: bytes.length, uploadedAt: new Date().toISOString(), chunks: Math.max(1, Math.ceil(b64.length / DOC_CHUNK)), enc: !!dataKey };
+    try{
+      await writeDocChunks(doc.id, b64, (i, n)=> setDocMessage('Uploading ' + label.toLowerCase() + '\u2026 ' + Math.round(100*i/n) + '%', false));
+    }catch(e){
+      docBusy = false; setDocButtonsDisabled(false);
+      deleteDocChunks(doc);
+      setDocMessage('The upload didn\u2019t finish \u2014 check your connection and try again. Nothing was changed.', true);
+      return;
+    }
+    documents = documents.filter(d=> d.kind !== kind).concat([doc]);
+    const saved = await saveDocumentsIndex();
+    docBusy = false; setDocButtonsDisabled(false);
+    renderDocuments();
+    if (saved){
+      setDocMessage(label + ' saved' + (storageMode === 'cloud' ? ' to your Claude account' : storageMode === 'local' ? ' in this browser' : ' for this session only') + '.', false);
+      if (existing) deleteDocChunks(existing);
+    } else {
+      setDocMessage(label + ' uploaded, but its record couldn\u2019t be saved \u2014 press Retry at the top of the page.', true);
+    }
+  }
+  async function downloadDocument(kind){
+    const d = documents.find(x=> x.kind === kind); if (!d) return;
+    setDocMessage('Preparing ' + docLabel(kind).toLowerCase() + '\u2026', false);
+    try{
+      const blob = new Blob([base64ToBytes(await readDocBase64(d))], { type: 'application/pdf' });
+      const result = await offerDownload(safePdfName(d), blob, 'application/pdf');
+      if (result === 'failed') setDocMessage('The file couldn\u2019t be saved from here \u2014 please try again.', true);
+      else setDocMessage('', false);
+    }catch(e){
+      setDocMessage('Couldn\u2019t read the stored ' + docLabel(kind).toLowerCase() + ' \u2014 check your connection and try again.', true);
+    }
+  }
+  async function removeDocument(kind){
+    const d = documents.find(x=> x.kind === kind); if (!d) return;
+    const ok = await confirmDialog('Remove the ' + docLabel(kind).toLowerCase() + ' on record (' + d.name + ')?\n\nDownload a copy first if you don\u2019t have one elsewhere.', 'Remove', 'Remove ' + docLabel(kind));
+    if (!ok) return;
+    documents = documents.filter(x=> x.id !== d.id);
+    const saved = await saveDocumentsIndex();
+    renderDocuments();
+    if (saved){ setDocMessage(docLabel(kind) + ' removed.', false); deleteDocChunks(d); }
+  }
+  DOC_KINDS.forEach(({kind})=>{
+    document.getElementById('doc-upload-' + kind).addEventListener('click', ()=>{
+      if (docBusy) return;
+      pendingDocKind = kind;
+      document.getElementById('doc-file-input').click();
+    });
+    document.getElementById('doc-download-' + kind).addEventListener('click', ()=> downloadDocument(kind));
+    document.getElementById('doc-remove-' + kind).addEventListener('click', ()=> removeDocument(kind));
+  });
+  document.getElementById('doc-file-input').addEventListener('change', async (ev)=>{
+    const file = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    const kind = pendingDocKind; pendingDocKind = null;
+    if (file && kind) await uploadDocument(kind, file);
+  });
+
+  // ---------- Backup export / import ----------
+  function setBackupMessage(text, isError){
+    const el = document.getElementById('backup-message');
+    el.textContent = text;
+    el.className = 'backup-message' + (text ? (isError ? ' error' : ' success') : '');
+  }
+  async function buildBackupPayload(){
+    const docsOut = [], docsFailed = [];
+    for (const d of documents){
+      try{
+        docsOut.push({ kind: d.kind, name: d.name, type: 'application/pdf', size: d.size, uploadedAt: d.uploadedAt, dataBase64: await readDocBase64(d) });
+      }catch(e){ docsFailed.push(docLabel(d.kind)); }
+    }
+    const json = JSON.stringify({
+      app: 'sa-days-tracker', version: 2, exportedAt: new Date().toISOString(),
+      title: appTitle, profile: profile, entries: entries, documents: docsOut
+    }, null, 2);
+    return { json: json, docsOut: docsOut, docsFailed: docsFailed };
+  }
+  const B64_RE = /^[A-Za-z0-9+/]*={0,2}$/;
+  // null = the backup was made before documents existed (keep what's on record)
+  function sanitizeImportedDocuments(list){
+    if (!Array.isArray(list)) return null;
+    const byKind = {};
+    list.forEach(raw=>{
+      if (!raw || typeof raw !== 'object' || !DOC_KINDS.some(k=> k.kind === raw.kind)) return;
+      const b64 = typeof raw.dataBase64 === 'string' ? raw.dataBase64.replace(/\s+/g, '') : '';
+      if (!b64 || b64.length % 4 !== 0 || !B64_RE.test(b64)) return;
+      const size = b64.length / 4 * 3 - (b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0);
+      if (size > DOC_MAX_BYTES) return;
+      let head; try{ head = base64ToBytes(b64.slice(0, 1368)); }catch(e){ return; }
+      if (!isPdfBytes(head)) return;
+      byKind[raw.kind] = { kind: raw.kind, name: String(raw.name || (raw.kind + '.pdf')).slice(0,120), size: size,
+        uploadedAt: (typeof raw.uploadedAt === 'string' && !isNaN(new Date(raw.uploadedAt))) ? raw.uploadedAt : new Date().toISOString(), b64: b64 };
+    });
+    return Object.values(byKind);
+  }
+  const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  function sanitizeImportedEntries(list){
+    if (!Array.isArray(list)) throw new Error('This backup file has no entries list.');
+    const out = [];
+    const seen = new Set();
+    list.forEach(raw=>{
+      if (!raw || typeof raw !== 'object') return;
+      const status = raw.status;
+      if (['inside','outside','transit'].indexOf(status) === -1) return;
+      if (!ISO_DATE_RE.test(String(raw.from||'')) || !ISO_DATE_RE.test(String(raw.to||''))) return;
+      if (parseISO(raw.to) < parseISO(raw.from)) return;
+      let id = (typeof raw.id === 'string' && raw.id) ? raw.id.slice(0,80) : newEntryId();
+      if (seen.has(id)) id = newEntryId();
+      seen.add(id);
+      const e = { id: id, status: status, from: raw.from, to: raw.to };
+      if (status === 'outside') e.country = String(raw.country || 'Unspecified').slice(0,80);
+      if (status === 'transit'){
+        e.mode = raw.mode === 'sea' ? 'sea' : 'air';
+        e.fromCountry = String(raw.fromCountry || 'Unspecified').slice(0,80);
+        e.toCountry = String(raw.toCountry || 'Unspecified').slice(0,80);
+      }
+      out.push(e);
+    });
+    return out;
+  }
+  function sanitizeImportedProfile(raw){
+    const out = {};
+    if (!raw || typeof raw !== 'object') return out;
+    PROFILE_FIELDS.forEach(f=>{
+      const v = raw[f.key];
+      if (typeof v !== 'string' || !v) return;
+      if (f.date && !ISO_DATE_RE.test(v)) return;
+      out[f.key] = v.slice(0,80);
+    });
+    return out;
+  }
+  document.getElementById('backup-export-btn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('backup-export-btn');
+    btn.disabled = true;
+    setBackupMessage('', false);
+    const filename = 'sa-days-tracker-backup-' + fmtISO(new Date()) + '.json';
+    if (documents.length) setBackupMessage('Preparing backup (including your documents)\u2026', false);
+    const built = await buildBackupPayload();
+    const result = await offerDownload(filename, built.json, 'application/json');
+    btn.disabled = false;
+    if (result === 'saved'){
+      backupMeta.lastDownloadedAt = new Date().toISOString();
+      renderBackupMeta(); saveMeta();
+      const docsNote = built.docsOut.length ? ', ' + built.docsOut.map(d=> docLabel(d.kind).toLowerCase()).join(' and ') + ' PDF' : '';
+      setBackupMessage('Backup saved as ' + filename + ' (' + entries.length + ' entries, personal details' + docsNote + ').' +
+        (built.docsFailed.length ? ' Note: the ' + built.docsFailed.join(' and ').toLowerCase() + ' couldn\u2019t be read just now and isn\u2019t included \u2014 try again.' : ''),
+        built.docsFailed.length > 0);
+    }
+    else if (result === 'failed') setBackupMessage('The backup file couldn\u2019t be saved from here. Try again, or open the app from its claude.ai link.', true);
+    else setBackupMessage('', false);
+  });
+  document.getElementById('backup-import-btn').addEventListener('click', ()=>{
+    document.getElementById('backup-file-input').click();
+  });
+  document.getElementById('backup-file-input').addEventListener('change', async (ev)=>{
+    const file = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!file) return;
+    setBackupMessage('', false);
+    let parsed;
+    try{
+      parsed = JSON.parse(await file.text());
+    }catch(e){
+      setBackupMessage('Couldn\u2019t read that file \u2014 choose a backup exported from this app (.json).', true);
+      return;
+    }
+    if (!parsed || parsed.app !== 'sa-days-tracker'){
+      setBackupMessage('That file isn\u2019t an SA Days Tracker backup.', true);
+      return;
+    }
+    let newEntries;
+    try{ newEntries = sanitizeImportedEntries(parsed.entries); }
+    catch(e){ setBackupMessage(e.message, true); return; }
+    const skipped = parsed.entries.length - newEntries.length;
+    const newProfile = withBuiltIns(sanitizeImportedProfile(parsed.profile));
+    const newTitle = (typeof parsed.title === 'string' && parsed.title.trim()) ? parsed.title.trim().slice(0,60) : DEFAULT_TITLE;
+    const when = parsed.exportedAt && !isNaN(new Date(parsed.exportedAt)) ? fmtDisplay(new Date(parsed.exportedAt)) : 'an unknown date';
+    const newDocs = sanitizeImportedDocuments(parsed.documents);
+    const docLine = newDocs === null || !newDocs.length
+      ? 'Your ID and passport PDFs on record are kept (this backup has none).'
+      : 'Documents in the backup (' + newDocs.map(d=> docLabel(d.kind).toLowerCase()).join(' and ') + ') replace those on record; any other document is kept.';
+    const ok = await confirmDialog(
+      'Replace the tracker with the backup from ' + when + '?\n\n' +
+      'It contains ' + newEntries.length + ' entr' + (newEntries.length===1?'y':'ies') + ' and your personal details, which replace what\u2019s here now.' +
+      (skipped > 0 ? ' ' + skipped + ' unreadable entr' + (skipped===1?'y':'ies') + ' will be skipped.' : '') +
+      '\n' + docLine +
+      '\n\nYou can undo this for a few seconds afterwards.',
+      'Replace with backup', 'Upload Backup');
+    if (!ok) return;
+    // Store any documents first, so a dropped connection can't leave a half-restored backup.
+    const newDocRecords = [];
+    if (newDocs && newDocs.length){
+      try{
+        for (const nd of newDocs){
+          const rec = { id: newEntryId(), kind: nd.kind, name: nd.name, type: 'application/pdf', size: nd.size, enc: !!dataKey,
+                        uploadedAt: nd.uploadedAt, chunks: Math.max(1, Math.ceil(nd.b64.length / DOC_CHUNK)) };
+          newDocRecords.push(rec);
+          await writeDocChunks(rec.id, nd.b64, (i, n)=> setBackupMessage('Restoring ' + docLabel(rec.kind).toLowerCase() + '\u2026 ' + Math.round(100*i/n) + '%', false));
+        }
+      }catch(e){
+        newDocRecords.forEach(r=> deleteDocChunks(r));
+        setBackupMessage('The backup\u2019s documents couldn\u2019t be stored \u2014 check your connection and try again. Nothing was changed.', true);
+        return;
+      }
+    }
+    const snapshot = { entries: entries.slice(), profile: Object.assign({}, profile), title: appTitle, documents: documents.slice() };
+    const replacedDocs = documents.filter(d=> newDocRecords.some(n=> n.kind === d.kind));
+    entries = newEntries; profile = newProfile; appTitle = newTitle;
+    documents = documents.filter(d=> !newDocRecords.some(n=> n.kind === d.kind)).concat(newDocRecords);
+    backupMeta.lastUploadedAt = new Date().toISOString();
+    backupMeta.lastUploadedMadeAt = (parsed.exportedAt && !isNaN(new Date(parsed.exportedAt))) ? parsed.exportedAt : null;
+    dataLoadFailed = false; showingBrowserCopy = false; // an explicit "replace everything" is a deliberate choice to overwrite
+    const a = await saveEntries(), b = await saveProfile(), c = await saveTitle(), d = await saveDocumentsIndex(), m = await saveMeta();
+    renderAllViews();
+    if (a && b && c && d && m){
+      setBackupMessage('Backup restored \u2014 ' + newEntries.length + ' entries' + (newDocRecords.length ? ', personal details and ' + newDocRecords.length + ' document' + (newDocRecords.length===1?'':'s') : ' and personal details') + ' loaded and saved.', false);
+      startLiveSync();
+      let undone = false;
+      setTimeout(()=>{ if (!undone) replacedDocs.forEach(r=> deleteDocChunks(r)); }, 9000);
+      showUndoToast('Backup restored', async ()=>{
+        undone = true;
+        entries = snapshot.entries; profile = snapshot.profile; appTitle = snapshot.title; documents = snapshot.documents;
+        await saveEntries(); await saveProfile(); await saveTitle(); await saveDocumentsIndex();
+        newDocRecords.forEach(r=> deleteDocChunks(r));
+        renderAllViews();
+        setBackupMessage('Upload undone.', false);
+      });
+    } else {
+      setBackupMessage('The backup is showing on screen but couldn\u2019t be saved \u2014 see the warning at the top.', true);
+    }
+  });
+
+  // ---------- Day resolution ----------
+  // Later entries (by array order = creation order) override earlier ones for overlapping dates.
+  function resolveDay(dateOnly){
+    dateOnly = toDateOnly(dateOnly); // compare whole days only, whatever time of day was passed in
+    let match = null;
+    entries.forEach(en=>{
+      const s = parseISO(en.from), e = parseISO(en.to);
+      if (dateOnly >= s && dateOnly <= e) match = en;
+    });
+    return match; // null => inside SA by default
+  }
+
+  // ---------- Calendar ----------
+  const calBody = document.getElementById('cal-body');
+  const calTitle = document.getElementById('cal-title');
+
+  let isDragging = false;
+  let dragStartDate = null;
+  let dragEndDate = null;
+
+  function updateSelectionHighlight(){
+    if (!dragStartDate || !dragEndDate) return;
+    const from = dragStartDate < dragEndDate ? dragStartDate : dragEndDate;
+    const to = dragStartDate < dragEndDate ? dragEndDate : dragStartDate;
+    document.querySelectorAll('#cal-body td.day').forEach(td=>{
+      const dd = parseISO(td.dataset.date);
+      td.classList.toggle('selecting', dd >= from && dd <= to);
+    });
+  }
+  function clearSelectionHighlight(){
+    document.querySelectorAll('#cal-body td.day.selecting').forEach(td=> td.classList.remove('selecting'));
+  }
+  // A click or selection always opens exactly the day(s) picked. Clicking one day of a longer
+  // trip opens just that day (pre-filled with the trip's details); saving then changes only
+  // that day and keeps the rest of the trip. The whole trip can still be edited via the link
+  // in the form or the pencil in Logged Entries.
+  function openDay(d){
+    const iso = fmtISO(d);
+    const existing = resolveDay(d);
+    if (!existing) openEntryForm(iso, iso);
+    else if (existing.from === existing.to) openEntryForm(existing.from, existing.to, existing);
+    else openEntryForm(iso, iso, null, { prefill: existing, contextEntry: existing });
+  }
+  function finishSelection(){
+    if (!dragStartDate || !dragEndDate) return;
+    const from = dragStartDate < dragEndDate ? dragStartDate : dragEndDate;
+    const to = dragStartDate < dragEndDate ? dragEndDate : dragStartDate;
+    clearSelectionHighlight();
+    dragStartDate = null; dragEndDate = null;
+    if (from.getTime() === to.getTime()) openDay(from);
+    else openEntryForm(fmtISO(from), fmtISO(to));
+  }
+  document.addEventListener('mouseup', ()=>{
+    if (!isDragging) return;
+    isDragging = false;
+    finishSelection();
+  });
+
+  // Phones/tablets: press and hold a day, then drag to pick several days.
+  // A quick swipe still scrolls the page; a quick tap opens the day as normal.
+  let touchTimer = null, touchActive = false, touchStartXY = null;
+  calBody.addEventListener('touchstart', (ev)=>{
+    const td = ev.target.closest && ev.target.closest('td.day');
+    if (!td || ev.touches.length !== 1) return;
+    const t = ev.touches[0];
+    touchStartXY = { x: t.clientX, y: t.clientY };
+    touchActive = false;
+    clearTimeout(touchTimer);
+    touchTimer = setTimeout(()=>{
+      touchActive = true;
+      dragStartDate = parseISO(td.dataset.date); dragEndDate = dragStartDate;
+      updateSelectionHighlight();
+      try{ if (navigator.vibrate) navigator.vibrate(10); }catch(e){}
+    }, 350);
+  }, { passive: true });
+  calBody.addEventListener('touchmove', (ev)=>{
+    const t = ev.touches[0];
+    if (!touchActive){
+      if (touchStartXY && (Math.abs(t.clientX - touchStartXY.x) > 8 || Math.abs(t.clientY - touchStartXY.y) > 8)) clearTimeout(touchTimer);
+      return;
+    }
+    ev.preventDefault(); // selecting, not scrolling
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    const td = el && el.closest ? el.closest('#cal-body td.day') : null;
+    if (td){ dragEndDate = parseISO(td.dataset.date); updateSelectionHighlight(); }
+  }, { passive: false });
+  calBody.addEventListener('touchend', (ev)=>{
+    clearTimeout(touchTimer);
+    if (!touchActive) return; // ordinary tap: the normal click handling opens the day
+    touchActive = false;
+    ev.preventDefault();      // don't also treat the release as a tap
+    finishSelection();
+  }, { passive: false });
+  calBody.addEventListener('touchcancel', ()=>{
+    clearTimeout(touchTimer); touchActive = false;
+    clearSelectionHighlight(); dragStartDate = null; dragEndDate = null;
+  });
+  calBody.addEventListener('contextmenu', (ev)=>{ if (ev.target.closest && ev.target.closest('td.day')) ev.preventDefault(); });
+
+  function renderCalendar(){
+    calTitle.textContent = viewDate.toLocaleDateString('en-ZA', {month:'long', year:'numeric'});
+    const year = viewDate.getFullYear(), month = viewDate.getMonth();
+    const firstDow = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const today = toDateOnly(new Date());
+
+    calBody.innerHTML = '';
+    let row = document.createElement('tr');
+    for(let i=0;i<firstDow;i++){
+      const td = document.createElement('td'); td.className='empty'; row.appendChild(td);
+    }
+    for(let day=1; day<=daysInMonth; day++){
+      const d = new Date(year, month, day);
+      const td = document.createElement('td');
+      td.className = 'day';
+      td.dataset.date = fmtISO(d);
+      const en = resolveDay(d);
+      const status = en ? en.status : 'inside';
+      td.classList.add('st-'+status);
+      if (d.getTime()===today.getTime()) td.classList.add('today');
+      let title = status === 'outside' ? ('Outside SA — ' + (en.country || 'unspecified'))
+                : status === 'transit' ? ('Transit (' + (en.mode||'air') + ') ' + (en.fromCountry||'?') + ' → ' + (en.toCountry||'?'))
+                : 'Inside SA';
+      td.title = title;
+      let icon = '';
+      if (status === 'outside') icon = '🌍';
+      else if (status === 'transit') icon = (en.mode==='sea' ? '⚓' : '✈');
+      td.innerHTML = '<span class="num">'+day+'</span>' + (icon ? '<span class="day-icon">'+icon+'</span>' : '');
+      td.addEventListener('mousedown', (ev)=>{
+        ev.preventDefault();
+        isDragging = true;
+        dragStartDate = d;
+        dragEndDate = d;
+        updateSelectionHighlight();
+      });
+      td.addEventListener('mouseenter', ()=>{
+        if (isDragging){ dragEndDate = d; updateSelectionHighlight(); }
+      });
+      row.appendChild(td);
+      if ((firstDow+day) % 7 === 0){ calBody.appendChild(row); row = document.createElement('tr'); }
+    }
+    if (row.children.length){
+      while(row.children.length < 7){ const td=document.createElement('td'); td.className='empty'; row.appendChild(td); }
+      calBody.appendChild(row);
+    }
+  }
+
+  document.getElementById('prev-month').addEventListener('click', ()=>{ viewDate.setMonth(viewDate.getMonth()-1); renderCalendar(); });
+  document.getElementById('next-month').addEventListener('click', ()=>{ viewDate.setMonth(viewDate.getMonth()+1); renderCalendar(); });
+
+  // ---------- Entry form ----------
+  const formWrap = document.getElementById('entry-form-wrap');
+  const entryForm = document.getElementById('entry-form');
+  const formError = document.getElementById('form-error');
+  let currentStatus = 'inside';
+  let currentMode = 'air';
+  let editingId = null;
+
+  let formContextEntry = null; // the longer trip the picked day belongs to (for the note + "edit whole trip")
+  function describeEntry(en){
+    if (en.status === 'outside') return 'Outside SA \u2014 ' + (en.country || 'unspecified');
+    if (en.status === 'transit') return 'Transit (' + (en.mode === 'sea' ? 'Sea' : 'Air') + ') \u2014 ' + (en.fromCountry || '?') + ' \u2192 ' + (en.toCountry || '?');
+    return 'Inside SA';
+  }
+  function shortRange(fromISO, toISO){
+    return fromISO === toISO ? fmtDisplay(parseISO(fromISO)) : fmtDisplay(parseISO(fromISO)) + ' \u2192 ' + fmtDisplay(parseISO(toISO));
+  }
+  function applyEntryToForm(en){
+    setStatus(en.status);
+    if (en.status === 'outside') document.getElementById('e-country').value = en.country || '';
+    if (en.status === 'transit'){
+      setMode(en.mode || 'air');
+      document.getElementById('e-from-country').value = en.fromCountry || '';
+      document.getElementById('e-to-country').value = en.toCountry || '';
+    }
+  }
+  function openEntryForm(fromVal, toVal, existingEntry, opts){
+    opts = opts || {};
+    entryForm.reset();
+    formError.textContent = '';
+    formContextEntry = opts.contextEntry || null;
+    const note = document.getElementById('entry-context-note');
+    if (formContextEntry){
+      document.getElementById('entry-context-text').textContent =
+        'This day is part of: ' + describeEntry(formContextEntry) + ', ' + shortRange(formContextEntry.from, formContextEntry.to) +
+        ' (' + dayCount(parseISO(formContextEntry.from), parseISO(formContextEntry.to)) + ' days). Saving changes only the date(s) shown below \u2014 the rest of that trip stays as it is.';
+      note.classList.add('show');
+    } else {
+      note.classList.remove('show');
+    }
+    if (existingEntry){
+      editingId = existingEntry.id;
+      document.getElementById('e-from').value = existingEntry.from;
+      document.getElementById('e-to').value = existingEntry.to;
+      setStatus(existingEntry.status);
+      if (existingEntry.status === 'outside'){
+        document.getElementById('e-country').value = existingEntry.country || '';
+      }
+      if (existingEntry.status === 'transit'){
+        setMode(existingEntry.mode || 'air');
+        document.getElementById('e-from-country').value = existingEntry.fromCountry || '';
+        document.getElementById('e-to-country').value = existingEntry.toCountry || '';
+      }
+      document.getElementById('entry-save-btn').textContent = 'Update Entry';
+    } else {
+      editingId = null;
+      document.getElementById('e-from').value = fromVal || '';
+      document.getElementById('e-to').value = toVal || fromVal || '';
+      setStatus('inside');
+      setMode('air');
+      if (opts.prefill) applyEntryToForm(opts.prefill);
+      document.getElementById('entry-save-btn').textContent = opts.prefill ? 'Save Change' : 'Save Entry';
+    }
+    document.getElementById('entry-form-title').textContent =
+      existingEntry ? 'Edit whole trip'
+      : opts.prefill ? 'Change ' + shortRange(fromVal, toVal)
+      : (fromVal ? 'Log ' + shortRange(fromVal, toVal || fromVal) : 'Add entry');
+    formWrap.classList.add('open');
+  }
+  document.getElementById('add-entry-btn').addEventListener('click', ()=> openEntryForm('', ''));
+  document.getElementById('edit-whole-trip-btn').addEventListener('click', ()=>{
+    if (formContextEntry) openEntryForm(formContextEntry.from, formContextEntry.to, formContextEntry);
+  });
+  document.getElementById('entry-cancel-btn').addEventListener('click', ()=> closeEntryForm());
+
+  function setStatus(status){
+    currentStatus = status;
+    document.querySelectorAll('.status-opt').forEach(o=> o.classList.toggle('active', o.dataset.status===status));
+    document.getElementById('cond-outside').classList.toggle('show', status==='outside');
+    document.getElementById('cond-transit').classList.toggle('show', status==='transit');
+  }
+  document.querySelectorAll('.status-opt').forEach(opt=>{
+    opt.addEventListener('click', ()=> setStatus(opt.dataset.status));
+  });
+  function setMode(mode){
+    currentMode = mode;
+    document.querySelectorAll('.mode-opt').forEach(o=> o.classList.toggle('active', o.dataset.mode===mode));
+  }
+  document.querySelectorAll('.mode-opt').forEach(opt=>{
+    opt.addEventListener('click', ()=> setMode(opt.dataset.mode));
+  });
+
+  entryForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    formError.textContent = '';
+    const fromVal = document.getElementById('e-from').value;
+    const toVal = document.getElementById('e-to').value;
+    if (!fromVal || !toVal){ formError.textContent = 'Both dates are required.'; return; }
+    const s = parseISO(fromVal), en = parseISO(toVal);
+    if (en < s){ formError.textContent = 'Date To must be on or after Date From.'; return; }
+
+    const entryData = { from: fromVal, to: toVal, status: currentStatus };
+    if (currentStatus === 'outside'){
+      const country = document.getElementById('e-country').value.trim();
+      if (!country){ formError.textContent = 'Please specify which country.'; return; }
+      entryData.country = country;
+    }
+    if (currentStatus === 'transit'){
+      const fc = document.getElementById('e-from-country').value.trim();
+      const tc = document.getElementById('e-to-country').value.trim();
+      if (!fc || !tc){ formError.textContent = 'Please specify both departure and destination countries.'; return; }
+      entryData.mode = currentMode;
+      entryData.fromCountry = fc;
+      entryData.toCountry = tc;
+    }
+
+    const before = entries.map(x=> Object.assign({}, x));   // for Undo
+    const editing = editingId ? entries.find(x=> x.id === editingId) : null;
+
+    // 1. Clicking a day of a trip and saving it unchanged: nothing to do.
+    if (!editing && formContextEntry && sameDetails(formContextEntry, entryData) &&
+        formContextEntry.from <= fromVal && toVal <= formContextEntry.to){
+      const unchanged = describeEntry(formContextEntry);
+      closeEntryForm();
+      showToast('No change \u2014 that day already says ' + unchanged + '.');
+      return;
+    }
+
+    // 2. Editing a whole trip and making it shorter: say exactly which days drop out first.
+    if (editing){
+      const dropped = [];
+      if (editing.from < fromVal) dropped.push(shortRange(editing.from, minISO(editing.to, addDaysISO(fromVal, -1))));
+      if (editing.to > toVal) dropped.push(shortRange(maxISO(editing.from, addDaysISO(toVal, 1)), editing.to));
+      if (dropped.length){
+        const ok = await confirmDialog('You\u2019ve made this trip shorter. These days will no longer be part of it and will go back to Inside SA:\n\n' +
+          dropped.join('\n') + '\n\nTo change only some days, cancel and click those days on the calendar instead.',
+          'Shorten trip', 'Shorten this trip?');
+        if (!ok) return;
+      }
+    }
+
+    // 3. Other trips that share any of these dates are trimmed/split around them, so every
+    //    day keeps its own single record and no day outside the chosen dates changes.
+    const plan = carvePlan(entries, fromVal, toVal, editing ? editing.id : null);
+    const unexpected = plan.affected.filter(a=> !formContextEntry || a.entry.id !== formContextEntry.id);
+    if (unexpected.length){
+      const lines = unexpected.map(a=> '\u2022 ' + describeEntry(a.entry) + ', ' + shortRange(a.entry.from, a.entry.to));
+      const ok = await confirmDialog('Some of these dates are already logged as:\n\n' + lines.join('\n') +
+        '\n\nSaving will replace ' + shortRange(fromVal, toVal) + ' with ' + describeEntry(entryData) +
+        '. Any other days of those trips are kept as they are.', 'Replace those dates', 'Dates already logged');
+      if (!ok) return;
+    }
+
+    let next = plan.next;
+    if (editing){
+      const idx = next.findIndex(x=> x.id === editing.id);
+      if (idx > -1) next[idx] = Object.assign({ id: editing.id }, entryData);
+      else next.push(Object.assign({ id: newEntryId() }, entryData)); // entry vanished meanwhile: never drop the edit
+    } else {
+      next.push(Object.assign({ id: newEntryId() }, entryData));
+    }
+    entries = next;
+    const changedOthers = plan.affected.length > 0;
+    closeEntryForm();
+    renderCalendar(); renderEntryList(); renderTotals();
+    await saveEntries();
+    if (changedOthers || editing){
+      showUndoToast('Saved ' + shortRange(fromVal, toVal), async ()=>{
+        entries = before;
+        await saveEntries();
+        renderCalendar(); renderEntryList(); renderTotals();
+      });
+    }
+  });
+
+  function closeEntryForm(){
+    formWrap.classList.remove('open');
+    editingId = null; formContextEntry = null;
+    document.getElementById('entry-context-note').classList.remove('show');
+    document.getElementById('entry-save-btn').textContent = 'Save Entry';
+  }
+  function sameDetails(a, b){
+    if (a.status !== b.status) return false;
+    if (a.status === 'outside') return (a.country || '').trim().toLowerCase() === (b.country || '').trim().toLowerCase();
+    if (a.status === 'transit') return (a.mode || 'air') === (b.mode || 'air') &&
+      (a.fromCountry || '').trim().toLowerCase() === (b.fromCountry || '').trim().toLowerCase() &&
+      (a.toCountry || '').trim().toLowerCase() === (b.toCountry || '').trim().toLowerCase();
+    return true;
+  }
+  function addDaysISO(iso, n){ const d = parseISO(iso); return fmtISO(new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)); }
+  function minISO(a, b){ return a < b ? a : b; }
+  function maxISO(a, b){ return a > b ? a : b; }
+  // Returns { next, affected }: a copy of `list` with every entry (except excludeId) cut back so it
+  // no longer covers fromISO..toISO. Entries fully inside are removed; entries straddling the
+  // range are split into the part before and the part after.
+  function carvePlan(list, fromISO, toISO, excludeId){
+    const next = [], affected = [];
+    const dayBefore = addDaysISO(fromISO, -1), dayAfter = addDaysISO(toISO, 1);
+    list.forEach(x=>{
+      if (x.id === excludeId || x.to < fromISO || x.from > toISO){ next.push(x); return; }
+      affected.push({ entry: x });
+      if (x.from < fromISO) next.push(Object.assign({}, x, { to: dayBefore }));
+      if (x.to > toISO) next.push(Object.assign({}, x, { id: x.from < fromISO ? newEntryId() : x.id, from: dayAfter }));
+    });
+    return { next, affected };
+  }
+
+  // ---------- Entry list ----------
+  function renderEntryList(){
+    const list = document.getElementById('entry-list');
+    if (!entries.length){
+      list.innerHTML = dataReady
+        ? '<li class="empty-note">No entries logged yet. Click a calendar day or "Add Entry" to begin.</li>'
+        : '<li class="empty-note">Loading your saved entries\u2026</li>';
+      return;
+    }
+    const sorted = [...entries].sort((a,b)=> parseISO(b.from) - parseISO(a.from));
+    list.innerHTML = sorted.map(en=>{
+      const s = parseISO(en.from), e = parseISO(en.to);
+      const days = dayCount(s,e);
+      let desc, tagClass, tagLabel;
+      if (en.status === 'outside'){
+        desc = escapeHtml(en.country || 'Outside SA'); tagClass='outside'; tagLabel='Outside';
+      } else if (en.status === 'transit'){
+        desc = (en.mode==='sea' ? '⚓ Sea' : '✈ Air') + ': ' + escapeHtml(en.fromCountry||'?') + ' → ' + escapeHtml(en.toCountry||'?');
+        tagClass='transit'; tagLabel='Transit';
+      } else {
+        desc = 'Inside South Africa'; tagClass='inside'; tagLabel='Inside';
+      }
+      return '<li>'+
+        '<span class="entry-tag '+tagClass+'">'+tagLabel+'</span>'+
+        '<div class="entry-meta">'+desc+'<div class="entry-dates">'+fmtDisplay(s)+' → '+fmtDisplay(e)+'</div></div>'+
+        '<div class="entry-days">'+days+'d</div>'+
+        '<button class="edit-btn" data-id="'+en.id+'" aria-label="Edit entry">✎</button>'+
+        '<button class="del-btn" data-id="'+en.id+'" aria-label="Delete entry">✕</button>'+
+      '</li>';
+    }).join('');
+  }
+  document.getElementById('entry-list').addEventListener('click', async (e)=>{
+    const editBtn = e.target.closest('.edit-btn');
+    if (editBtn){
+      const en = entries.find(x=> x.id === editBtn.dataset.id);
+      if (en) openEntryForm(en.from, en.to, en);
+      return;
+    }
+    const delBtn = e.target.closest('.del-btn');
+    if (!delBtn) return;
+    const removedIndex = entries.findIndex(en=> en.id === delBtn.dataset.id);
+    if (removedIndex === -1) return;
+    const removedEntry = entries[removedIndex];
+    entries = entries.filter(en=> en.id !== delBtn.dataset.id);
+    if (editingId === delBtn.dataset.id || (formContextEntry && formContextEntry.id === delBtn.dataset.id)) closeEntryForm();
+    await saveEntries();
+    renderCalendar();
+    renderEntryList();
+    renderTotals();
+    showUndoToast('Entry deleted', async ()=>{
+      entries.splice(Math.min(removedIndex, entries.length), 0, removedEntry);
+      await saveEntries();
+      renderCalendar();
+      renderEntryList();
+      renderTotals();
+    });
+  });
+  document.getElementById('clear-entries-btn').addEventListener('click', async ()=>{
+    if (!entries.length){ return; }
+    const ok = await confirmDialog('Clear all ' + entries.length + ' logged entries and reset every day count to 0?\n\nYou can undo this for a few seconds afterwards.', 'Clear all', 'Clear all entries');
+    if (!ok) return;
+    const snapshot = entries.slice();
+    entries = [];
+    closeEntryForm();
+    await saveEntries();
+    renderCalendar();
+    renderEntryList();
+    renderTotals();
+    showUndoToast(snapshot.length + ' entries cleared', async ()=>{
+      const addedSince = entries.filter(x=> !snapshot.some(y=> y.id === x.id));
+      entries = snapshot.concat(addedSince);
+      await saveEntries();
+      renderCalendar();
+      renderEntryList();
+      renderTotals();
+    });
+  });
+
+  // ---------- Totals ----------
+  const taxyearSelect = document.getElementById('taxyear-select');
+
+  function populateTaxYearSelect(){
+    const years = new Set();
+    const currentStart = taxYearStart(new Date());
+    for(let y = currentStart-5; y <= currentStart+1; y++) years.add(y);
+    entries.forEach(en=>{
+      yearsSpanned(en.from, en.to).forEach(y=> years.add(y));
+    });
+    const sorted = Array.from(years).filter(y=> y >= MIN_TAX_YEAR).sort((a,b)=>b-a);
+    const prevVal = taxyearSelect.value;
+    taxyearSelect.innerHTML = sorted.map(y=>'<option value="'+y+'">'+taxYearLabel(y)+' tax year</option>').join('');
+    taxyearSelect.value = sorted.includes(Number(prevVal)) ? prevVal : String(Math.max(currentStart, MIN_TAX_YEAR));
+  }
+  taxyearSelect.addEventListener('change', renderTotals);
+
+  function tallyRange(rangeStart, rangeEnd){
+    // returns {inside, outside, transit, byCountry:{country:days}}
+    const today = toDateOnly(new Date());
+    const effectiveEnd = rangeEnd < today ? rangeEnd : today;
+    if (effectiveEnd < rangeStart) return null;
+    let inside=0, outside=0, transit=0;
+    const byCountry = {};
+    // Step by calendar day, not by 24 hours: on a computer set to a daylight-saving time zone,
+    // adding 24h crosses the clock change and lands at 23:00/01:00, which mis-assigns days.
+    const endDay = toDateOnly(effectiveEnd);
+    for (let d = toDateOnly(rangeStart); d <= endDay; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)){
+      const en = resolveDay(d);
+      const status = en ? en.status : 'inside';
+      if (status==='inside') inside++;
+      else if (status==='outside'){ outside++; const c = en.country || 'Unspecified'; byCountry[c] = (byCountry[c]||0)+1; }
+      else if (status==='transit'){ transit++; inside++; outside++; }
+    }
+    return { inside, outside, transit, byCountry };
+  }
+
+  function renderTotals(){
+    document.getElementById('totals-empty-banner').style.display = (entries.length || !dataReady) ? 'none' : 'block';
+
+    const pFlag = document.getElementById('totals-passport-flag');
+    const pStatus = passportExpiryStatus();
+    if (pStatus === 'expired'){
+      pFlag.innerHTML = '<div class="passport-flag" style="margin-bottom:18px;">Passport has expired. See the Personal Info tab.</div>';
+    } else if (pStatus === 'expiring'){
+      pFlag.innerHTML = '<div class="passport-flag" style="margin-bottom:18px;">Passport expires within 6 months. See the Personal Info tab.</div>';
+    } else {
+      pFlag.innerHTML = '';
+    }
+
+    populateTaxYearSelect();
+    const startYear = Number(taxyearSelect.value);
+    const range = taxYearRange(startYear);
+    const tally = tallyRange(range.start, range.end);
+
+    document.getElementById('stat-inside').textContent = tally ? tally.inside : 'n/a';
+    document.getElementById('stat-outside').textContent = tally ? tally.outside : 'n/a';
+    document.getElementById('stat-transit').textContent = tally ? tally.transit : 'n/a';
+
+    const box = document.getElementById('threshold-box');
+    const today = toDateOnly(new Date());
+    if (!tally){
+      box.innerHTML = '<b>Tax year has not started yet.</b>';
+    } else {
+      const remaining = Math.max(0, 91 - tally.inside);
+      box.innerHTML =
+        'Physical presence test (91-day threshold): <b>'+tally.inside+' / 91</b> days inside SA so far.<br>' +
+        (tally.inside >= 91 ? 'Threshold for this tax year has been met.' : remaining + ' more day'+(remaining===1?'':'s')+' inside SA needed to reach 91.') +
+        (range.end > today ? '<br>Year in progress — figures as at today.' : '<br>Year complete.');
+    }
+
+    const countryList = document.getElementById('country-list-totals');
+    if (!tally || !Object.keys(tally.byCountry).length){
+      countryList.innerHTML = '<li class="empty-note">No days outside SA logged for this tax year.</li>';
+    } else {
+      const rows = Object.entries(tally.byCountry).sort((a,b)=> b[1]-a[1]);
+      countryList.innerHTML = rows.map(([c,d])=> '<li><span>'+escapeHtml(c)+'</span><span class="cdays">'+d+'d</span></li>').join('');
+    }
+  }
+
+  // ---------- Profile ----------
+  const PROFILE_FIELDS = [
+    { key:'name', label:'Name' },
+    { key:'surname', label:'Surname' },
+    { key:'email', label:'Email' },
+    { key:'idNumber', label:'ID Number' },
+    { key:'taxNumber', label:'Tax Number' },
+    { key:'passportNumber', label:'Passport Number' },
+    { key:'passportIssue', label:'Passport Issue Date', date:true },
+    { key:'passportExpiry', label:'Passport Expiry Date', date:true }
+  ];
+  function passportExpiryStatus(){
+    if (!profile.passportExpiry) return null;
+    const expiry = parseISO(profile.passportExpiry);
+    const today = toDateOnly(new Date());
+    const sixMonthsOut = new Date(today.getFullYear(), today.getMonth()+6, today.getDate());
+    if (expiry < today) return 'expired';
+    if (expiry < sixMonthsOut) return 'expiring';
+    return 'ok';
+  }
+  function renderProfileView(){
+    const view = document.getElementById('profile-view');
+    const hasAny = PROFILE_FIELDS.some(f => profile[f.key]);
+    if (!hasAny){
+      view.innerHTML = '<div class="profile-empty-note">No profile details saved yet. Click "Edit" to add your name, ID, passport and tax details — these are included on the PDF summary.</div>';
+      return;
+    }
+    const status = passportExpiryStatus();
+    view.innerHTML = '<div class="profile-view">' +
+      PROFILE_FIELDS.map(f=>{
+        let val = profile[f.key];
+        let displayVal = val ? (f.date ? fmtDisplay(parseISO(val)) : escapeHtml(val)) : '';
+        let cls = 'pv-value' + (!val ? ' empty' : '');
+        if (f.key==='passportExpiry' && val && status!=='ok') cls += ' warn';
+        return '<div class="pv-field"><div class="pv-label">'+f.label+'</div><div class="'+cls+'">'+(displayVal||'—')+'</div></div>';
+      }).join('') +
+    '</div>' +
+    (status==='expired' ? '<div class="passport-flag" style="margin-top:14px;">Passport has expired.</div>' :
+     status==='expiring' ? '<div class="passport-flag" style="margin-top:14px;">Passport expires within 6 months — many countries require 6 months\' validity for entry.</div>' : '');
+  }
+  function openProfileForm(){
+    document.getElementById('p-name').value = profile.name || '';
+    document.getElementById('p-surname').value = profile.surname || '';
+    document.getElementById('p-email').value = profile.email || '';
+    document.getElementById('p-id').value = profile.idNumber || '';
+    document.getElementById('p-tax').value = profile.taxNumber || '';
+    document.getElementById('p-passport').value = profile.passportNumber || '';
+    document.getElementById('p-issue').value = profile.passportIssue || '';
+    document.getElementById('p-expiry').value = profile.passportExpiry || '';
+    document.getElementById('profile-view').style.display = 'none';
+    document.getElementById('profile-form').classList.add('open');
+    document.getElementById('profile-edit-btn').style.display = 'none';
+  }
+  function closeProfileForm(){
+    document.getElementById('profile-view').style.display = '';
+    document.getElementById('profile-form').classList.remove('open');
+    document.getElementById('profile-edit-btn').style.display = '';
+  }
+  document.getElementById('profile-edit-btn').addEventListener('click', openProfileForm);
+  document.getElementById('profile-cancel-btn').addEventListener('click', closeProfileForm);
+  document.getElementById('profile-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const errBox = document.getElementById('profile-form-error');
+    errBox.textContent = '';
+    const candidate = {
+      name: document.getElementById('p-name').value.trim(),
+      surname: document.getElementById('p-surname').value.trim(),
+      email: document.getElementById('p-email').value.trim(),
+      idNumber: document.getElementById('p-id').value.trim(),
+      taxNumber: document.getElementById('p-tax').value.trim(),
+      passportNumber: document.getElementById('p-passport').value.trim(),
+      passportIssue: document.getElementById('p-issue').value,
+      passportExpiry: document.getElementById('p-expiry').value
+    };
+    const previousProfile = profile;
+    profile = withBuiltIns(candidate);
+    const saveBtn = document.getElementById('profile-save-btn');
+    const originalLabel = saveBtn.textContent;
+    saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+    const ok = await saveProfile();
+    saveBtn.disabled = false; saveBtn.textContent = originalLabel;
+    if (!ok){
+      profile = previousProfile;
+      errBox.textContent = 'Could not save — your changes were not persisted. Please try again.';
+      return; // keep the form open so nothing entered is lost
+    }
+    closeProfileForm();
+    renderProfileView();
+  });
+
+  // ---------- PDF export ----------
+  async function generatePDF(btn, scope){
+    const originalText = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Generating…';
+    try{
+      if (!window.jspdf || !window.jspdf.jsPDF){
+        showToast('The PDF tool didn\u2019t load \u2014 check your internet connection and reload the page.');
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:'pt', format:'a4' });
+      const marginX = 48;
+      const PAGE_W = doc.internal.pageSize.getWidth();
+      const PAGE_H = doc.internal.pageSize.getHeight();
+      const rightX = PAGE_W - marginX;
+      let y;
+
+      function drawHeaderBand(){
+        doc.setFillColor(0,105,62);
+        doc.rect(0,0,PAGE_W,86,'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(255,255,255);
+        doc.text(appTitle.toUpperCase(), marginX, 42);
+        doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(255,184,28);
+        doc.text('Summary Report', marginX, 62);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(220,235,227);
+        doc.text('Generated ' + fmtDisplay(new Date()), rightX, 42, {align:'right'});
+      }
+      function ensureSpace(yPos, needed, sectionLabel){
+        if (yPos + needed > PAGE_H - 56){
+          doc.addPage();
+          doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(160,160,160);
+          doc.text((sectionLabel||'SA Days Tracker') + ' — continued', marginX, 40);
+          doc.setDrawColor(220,220,220); doc.line(marginX,46,rightX,46);
+          return 68;
+        }
+        return yPos;
+      }
+
+      drawHeaderBand();
+      y = 112;
+
+      const hasProfile = PROFILE_FIELDS.some(f => profile[f.key]);
+      if (hasProfile){
+        doc.setFont('helvetica','bold'); doc.setFontSize(12.5); doc.setTextColor(0,54,31);
+        const fullName = [profile.name, profile.surname].filter(Boolean).join(' ');
+        doc.text(fullName || 'Personal Profile', marginX, y); y += 6;
+        doc.setDrawColor(255,184,28); doc.setLineWidth(1.6);
+        doc.line(marginX, y, marginX+90, y); doc.setLineWidth(1);
+        y += 18;
+
+        const pairs = [];
+        if (profile.email) pairs.push(['Email', profile.email]);
+        if (profile.idNumber) pairs.push(['ID Number', profile.idNumber]);
+        if (profile.taxNumber) pairs.push(['Tax Number', profile.taxNumber]);
+        if (profile.passportNumber) pairs.push(['Passport Number', profile.passportNumber]);
+        if (profile.passportIssue) pairs.push(['Passport Issued', fmtISO(parseISO(profile.passportIssue))]);
+        if (profile.passportExpiry) pairs.push(['Passport Expires', fmtISO(parseISO(profile.passportExpiry))]);
+        const colGap = (rightX-marginX)/2;
+        doc.setFontSize(9);
+        pairs.forEach((p,i)=>{
+          const col = i % 2;
+          const rowY = y + Math.floor(i/2)*16;
+          const x = marginX + col*colGap;
+          doc.setFont('helvetica','bold'); doc.setTextColor(90,90,90); doc.text(p[0]+':', x, rowY);
+          doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30); doc.text(String(p[1]), x+98, rowY);
+        });
+        y += Math.ceil(pairs.length/2)*16 + 16;
+        doc.setDrawColor(228,228,220); doc.line(marginX,y,rightX,y); y += 26;
+      }
+
+      doc.setFont('helvetica','bold'); doc.setFontSize(13.5); doc.setTextColor(0,54,31);
+      doc.text('Days In / Out of South Africa', marginX, y); y += 20;
+
+      let entryFilter;
+      if (scope.type === 'years'){
+        const sortedYears = scope.years.slice().sort((a,b)=>a-b);
+        const yearRanges = sortedYears.map(sy=> ({ sy, range: taxYearRange(sy) }));
+        entryFilter = (en)=> yearRanges.some(({range})=> parseISO(en.to) >= range.start && parseISO(en.from) <= range.end);
+
+        const tyCols = [
+          { label:'TAX YEAR', x: marginX },
+          { label:'INSIDE SA', x: marginX+120 },
+          { label:'OUTSIDE SA', x: marginX+220 },
+          { label:'TRANSIT', x: marginX+320 }
+        ];
+        doc.setFillColor(255,184,28);
+        doc.rect(marginX, y-12, rightX-marginX, 19, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(0,54,31);
+        tyCols.forEach(c=> doc.text(c.label, c.x+5, y));
+        y += 16;
+
+        let zebraA = false, combinedInside = 0, combinedOutside = 0, combinedCount = 0;
+        yearRanges.forEach(({sy, range})=>{
+          y = ensureSpace(y, 20, 'Tax Year Summary');
+          const tally = tallyRange(range.start, range.end);
+          const label = taxYearLabel(sy);
+          if (zebraA){ doc.setFillColor(228,242,234); doc.rect(marginX, y-11, rightX-marginX, 17, 'F'); }
+          zebraA = !zebraA;
+          doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(40,40,40);
+          doc.text(label, tyCols[0].x+5, y);
+          if (!tally){
+            doc.setFont('helvetica','italic'); doc.setTextColor(140,140,140);
+            doc.text('tax year not yet started', tyCols[1].x+5, y);
+            y += 17; return;
+          }
+          combinedInside += tally.inside; combinedOutside += tally.outside; combinedCount++;
+          doc.text(String(tally.inside), tyCols[1].x+5, y);
+          doc.text(String(tally.outside), tyCols[2].x+5, y);
+          doc.text(String(tally.transit), tyCols[3].x+5, y);
+          y += 17;
+        });
+
+        y += 10; doc.setDrawColor(228,228,220); doc.line(marginX,y,rightX,y); y += 18;
+        doc.setFont('helvetica','italic'); doc.setFontSize(9.5); doc.setTextColor(90,90,90);
+        const yearWord = combinedCount === 1 ? 'tax year shown' : combinedCount + ' tax years shown';
+        doc.text('Combined across ' + yearWord + ': ' + combinedInside + ' days inside SA, ' + combinedOutside + ' days outside SA.', marginX, y);
+        y += 14;
+        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(150,150,150);
+        doc.text('Transit days are counted toward both Inside SA and Outside SA totals.', marginX, y);
+        y += 32;
+      } else {
+        const customStart = parseISO(scope.from), customEnd = parseISO(scope.to);
+        entryFilter = (en)=> parseISO(en.to) >= customStart && parseISO(en.from) <= customEnd;
+
+        doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(90,90,90);
+        doc.text('Period: ' + fmtDisplay(customStart) + '  —  ' + fmtDisplay(customEnd), marginX, y);
+        y += 22;
+
+        // tallyRange caps at "today"; for a fully past custom range that's a no-op, but
+        // guard against a range entirely in the future returning null.
+        const effEnd = customEnd < toDateOnly(new Date()) ? customEnd : toDateOnly(new Date());
+        const tally = effEnd >= customStart ? tallyRange(customStart, customEnd) : { inside:0, outside:0, transit:0 };
+
+        const boxW = (rightX - marginX - 20) / 3;
+        [
+          { label:'INSIDE SA', val: tally.inside, fill:[228,242,234] },
+          { label:'OUTSIDE SA', val: tally.outside, fill:[255,243,217] },
+          { label:'TRANSIT', val: tally.transit, fill:[0,54,31], text:[255,255,255] }
+        ].forEach((box, i)=>{
+          const bx = marginX + i*(boxW+10);
+          doc.setFillColor.apply(doc, box.fill);
+          doc.rect(bx, y, boxW, 46, 'F');
+          doc.setFont('helvetica','bold'); doc.setFontSize(20);
+          doc.setTextColor.apply(doc, box.text || [0,54,31]);
+          doc.text(String(box.val), bx+10, y+26);
+          doc.setFont('helvetica','normal'); doc.setFontSize(8);
+          doc.setTextColor.apply(doc, box.text ? [220,235,227] : [90,90,90]);
+          doc.text(box.label, bx+10, y+38);
+        });
+        y += 66;
+        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(150,150,150);
+        doc.text('Transit days are counted toward both Inside SA and Outside SA totals.', marginX, y);
+        y += 30;
+      }
+
+      y = ensureSpace(y, 60, 'Entry Log');
+      doc.setFont('helvetica','bold'); doc.setFontSize(13.5); doc.setTextColor(0,54,31);
+      doc.text('Entry Log', marginX, y); y += 20;
+
+      const eCols = [
+        { label:'TYPE', x: marginX },
+        { label:'DETAIL', x: marginX+65 },
+        { label:'FROM', x: marginX+270 },
+        { label:'TO', x: marginX+355 },
+        { label:'DAYS', x: marginX+440 }
+      ];
+      doc.setFillColor(0,105,62);
+      doc.rect(marginX, y-12, rightX-marginX, 19, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(255,255,255);
+      eCols.forEach(c=> doc.text(c.label, c.x+5, y));
+      y += 16;
+
+      const sortedEntries = entries.filter(entryFilter).sort((a,b)=> parseISO(a.from) - parseISO(b.from));
+      if (!sortedEntries.length){
+        doc.setFont('helvetica','italic'); doc.setFontSize(9.5); doc.setTextColor(140,140,140);
+        doc.text('No entries in this period.', marginX, y); y += 16;
+      }
+      let zebraB = false;
+      sortedEntries.forEach(en=>{
+        y = ensureSpace(y, 18, 'Entry Log');
+        const s = parseISO(en.from), e = parseISO(en.to);
+        const days = dayCount(s,e);
+        const type = en.status.charAt(0).toUpperCase()+en.status.slice(1);
+        let detail = en.status==='outside' ? (en.country||'')
+                   : en.status==='transit' ? ((en.mode==='sea'?'Sea':'Air')+': '+(en.fromCountry||'')+' -> '+(en.toCountry||''))
+                   : 'South Africa';
+        if (detail.length > 36) detail = detail.slice(0,33)+'...';
+        if (zebraB){ doc.setFillColor(245,245,239); doc.rect(marginX, y-11, rightX-marginX, 17, 'F'); }
+        zebraB = !zebraB;
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+        doc.text(type, eCols[0].x+5, y);
+        doc.text(detail, eCols[1].x+5, y);
+        doc.text(fmtISO(s), eCols[2].x+5, y);
+        doc.text(fmtISO(e), eCols[3].x+5, y);
+        doc.text(String(days), eCols[4].x+5, y);
+        y += 17;
+      });
+
+      y = ensureSpace(y, 40, 'Notes');
+      y += 8; doc.setDrawColor(228,228,220); doc.line(marginX,y,rightX,y); y += 16;
+      doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(120,120,120);
+      const note = 'Day of arrival and day of departure both count as a day present in South Africa (SARS convention). Transit days are counted toward both Inside SA and Outside SA totals. This is a personal record, not tax or immigration advice.';
+      doc.text(doc.splitTextToSize(note, rightX-marginX), marginX, y);
+
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i=1; i<=pageCount; i++){
+        doc.setPage(i);
+        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(160,160,160);
+        doc.text('Page ' + i + ' of ' + pageCount, rightX, PAGE_H-24, {align:'right'});
+      }
+
+      const pdfName = 'sa-days-tracker-summary-' + fmtISO(new Date()) + '.pdf';
+      const result = await offerDownload(pdfName, doc.output('blob'), 'application/pdf');
+      if (result === 'failed') showToast('The PDF couldn\u2019t be saved \u2014 please try again.');
+    } finally {
+      btn.disabled = false; btn.textContent = originalText;
+    }
+  }
+  // ---------- PDF export scope selection ----------
+  let pdfTriggerBtn = null;
+  let pdfScopeMode = 'years';
+
+  function allAvailableTaxYears(){
+    const yrs = new Set();
+    const currentStart = taxYearStart(new Date());
+    for (let y = currentStart-6; y <= currentStart+1; y++) yrs.add(y);
+    entries.forEach(en=> yearsSpanned(en.from, en.to).forEach(y=> yrs.add(y)));
+    return Array.from(yrs).sort((a,b)=> b-a);
+  }
+
+  function openPdfScopeModal(triggerBtn){
+    pdfTriggerBtn = triggerBtn;
+    document.getElementById('pdf-scope-error').textContent = '';
+    setPdfScopeMode('years');
+
+    const years = allAvailableTaxYears();
+    const checklist = document.getElementById('year-checklist');
+    checklist.innerHTML = years.map(y=>{
+      const checked = y >= MIN_TAX_YEAR ? 'checked' : '';
+      const note = y < MIN_TAX_YEAR ? '<span class="yr-note">completed</span>' : '';
+      return '<div class="year-check-row">' +
+        '<input type="checkbox" id="yr-chk-'+y+'" data-year="'+y+'" '+checked+'>' +
+        '<label for="yr-chk-'+y+'">'+taxYearLabel(y)+' tax year</label>' + note +
+      '</div>';
+    }).join('');
+
+    document.getElementById('pdf-range-from').value = '';
+    document.getElementById('pdf-range-to').value = '';
+
+    document.getElementById('pdf-scope-overlay').classList.add('show');
+  }
+  function closePdfScopeModal(){
+    document.getElementById('pdf-scope-overlay').classList.remove('show');
+  }
+  function setPdfScopeMode(mode){
+    pdfScopeMode = mode;
+    document.getElementById('scope-opt-years').classList.toggle('active', mode==='years');
+    document.getElementById('scope-opt-custom').classList.toggle('active', mode==='custom');
+    document.getElementById('scope-years-panel').style.display = mode==='years' ? 'block' : 'none';
+    document.getElementById('scope-custom-panel').style.display = mode==='custom' ? 'block' : 'none';
+    document.getElementById('pdf-scope-error').textContent = '';
+  }
+  document.getElementById('scope-opt-years').addEventListener('click', ()=> setPdfScopeMode('years'));
+  document.getElementById('scope-opt-custom').addEventListener('click', ()=> setPdfScopeMode('custom'));
+  document.getElementById('pdf-scope-cancel').addEventListener('click', closePdfScopeModal);
+  document.getElementById('pdf-scope-overlay').addEventListener('click', (e)=>{
+    if (e.target.id === 'pdf-scope-overlay') closePdfScopeModal();
+  });
+
+  document.getElementById('pdf-scope-generate').addEventListener('click', ()=>{
+    const errBox = document.getElementById('pdf-scope-error');
+    errBox.textContent = '';
+    let scope;
+    if (pdfScopeMode === 'years'){
+      const checked = Array.from(document.querySelectorAll('#year-checklist input[type="checkbox"]:checked'))
+        .map(cb=> Number(cb.dataset.year));
+      if (!checked.length){ errBox.textContent = 'Select at least one tax year.'; return; }
+      scope = { type:'years', years: checked };
+    } else {
+      const fromVal = document.getElementById('pdf-range-from').value;
+      const toVal = document.getElementById('pdf-range-to').value;
+      if (!fromVal || !toVal){ errBox.textContent = 'Both dates are required.'; return; }
+      if (parseISO(toVal) < parseISO(fromVal)){ errBox.textContent = 'Date To must be on or after Date From.'; return; }
+      scope = { type:'custom', from: fromVal, to: toVal };
+    }
+    closePdfScopeModal();
+    generatePDF(pdfTriggerBtn, scope);
+  });
+
+  document.getElementById('pdf-btn').addEventListener('click', (e)=> openPdfScopeModal(e.currentTarget));
+  document.getElementById('pdf-btn-header').addEventListener('click', (e)=> openPdfScopeModal(e.currentTarget));
+
+  // ---------- Init ----------
+  const BASELINE_ENTRIES = [];
+
+  document.getElementById('storage-retry-btn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('storage-retry-btn');
+    btn.disabled = true; btn.textContent = 'Retrying\u2026';
+    if (dataLoadFailed){
+      // Loading failed earlier: try loading again rather than saving over unknown data.
+      await loadAllData();
+      if (!dataLoadFailed){
+        dataReady = true;
+        hideStorageError();
+        saveIndicator.textContent = syncedLabel();
+        renderAllViews();
+        startLiveSync();
+      }
+    } else {
+      const ok1 = await saveEntries(), ok2 = await saveProfile(), ok3 = await saveTitle();
+      const ok4 = await saveDocumentsIndex(), ok5 = await saveMeta();
+      if (ok1 && ok2 && ok3 && ok4 && ok5) hideStorageError();
+    }
+    btn.disabled = false; btn.textContent = 'Retry';
+  });
+
+  saveIndicator.addEventListener('click', ()=>{
+    if (storageMode === 'cloud') return;
+    document.querySelector('.tab-btn[data-tab="personal"]').click();
+    document.getElementById('storage-status').scrollIntoView({ behavior:'smooth', block:'center' });
+  });
+
+  (async function init(){
+    // Draw the page straight away, then light up saved data once storage answers.
+    renderAllViews();
+    await initStorage();
+    renderStorageStatus();
+    if (storageMode !== 'cloud'){ saveIndicator.style.cursor = 'pointer'; saveIndicator.title = 'Where is my data saved?'; }
+
+    if (!storageApiPresent()){
+      // Nothing can be stored here, so there is nothing to lock.
+      entries = BASELINE_ENTRIES.map(e=> Object.assign({}, e));
+      dataReady = true;
+      hideAuth(); document.body.classList.remove('locked');
+      saveIndicator.textContent = '\u25cf not saving';
+      flashStorageError('unavailable');
+      renderAllViews();
+      return;
+    }
+    if (!(window.crypto && crypto.subtle)){ showAuth('nocrypto'); return; }
+    await startAuth();
+  })();
+
+  // Phone home-screen support for the GitHub copy (works offline after the first visit).
+  if ('serviceWorker' in navigator && (HOST_KIND === 'github' || location.hostname === 'localhost')){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+})();
+</script>
+</body>
+</html>
