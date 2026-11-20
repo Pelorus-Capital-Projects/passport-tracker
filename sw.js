@@ -2,12 +2,12 @@
    The app page is fetched from the network whenever possible (so updates arrive), and the last good copy is used
    when there is no signal or the connection is very slow. Your data is NOT kept here: it lives encrypted in the
    browser's own storage on this device, which this file never touches. */
-const VERSION = '2026-11-16';
+const VERSION = '2026-11-16-b47b79af';   // app version + fingerprint of the files below
 const CACHE = 'sa-days-tracker-' + VERSION;
-const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
+const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES.map(f => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', event => {
   event.waitUntil(
