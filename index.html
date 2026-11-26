@@ -482,11 +482,13 @@
   }
 
   .save-indicator{
-    position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));right:16px;
-    font-family:var(--font);font-size:10.5px;
-    background:var(--navy);color:var(--blue-100);
-    padding:6px 12px;border-radius:100px;opacity:0.9;
+    display:none;
+    position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));right:16px;z-index:60;
+    font-family:var(--font);font-size:11.5px;font-weight:500;
+    background:#8a3324;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,0.25);
+    padding:7px 13px;border-radius:100px;
   }
+  .save-indicator.problem{display:block;}
 
   .storage-error-banner{
     display:none;
@@ -1410,6 +1412,12 @@
   function storageApiPresent(){
     return storageMode !== 'none';
   }
+  // The pill stays hidden while saving works; it shows (in red) only when something didn't save or load.
+  function setSaveLabel(text){
+    saveIndicator.textContent = text;
+    const fine = text === syncedLabel() || text === '\u25cf saving\u2026' || text === '\u25cf loading\u2026';
+    saveIndicator.classList.toggle('problem', !fine);
+  }
   function syncedLabel(){
     if (storageMode === 'cloud') return mirrorAvailable ? '● saved to Claude + this browser' : '● saved to Claude';
     if (storageMode === 'local') return HOST_KIND === 'file' ? '● saved in this browser only' : '● saved on this device';
@@ -1940,7 +1948,7 @@
     dataReady = !dataLoadFailed || showingBrowserCopy; // never show a misleading empty list
     renderAllViews();
     if (!dataLoadFailed){
-      saveIndicator.textContent = syncedLabel();
+      setSaveLabel(syncedLabel());
       startLiveSync();
       await migrateLegacyDocs();
     }
@@ -2068,33 +2076,33 @@
   async function persist(key, value, opts){
     const raw = !!(opts && opts.raw);
     if (!raw && !dataKey) return false;   // locked: nothing may be saved unencrypted
-    saveIndicator.textContent = '\u25cf saving\u2026';
+    setSaveLabel('\u25cf saving\u2026');
     if (dataLoadFailed){
-      saveIndicator.textContent = '\u25cf not saved';
+      setSaveLabel('\u25cf not saved');
       flashStorageError(showingBrowserCopy ? 'load-failed-mirror' : 'load-failed');
       return false;
     }
     if (!storageApiPresent()){
-      saveIndicator.textContent = '\u25cf not saved';
+      setSaveLabel('\u25cf not saved');
       flashStorageError('unavailable');
       return false;
     }
     const ts = new Date().toISOString();
     let stored;
     try{ stored = raw ? value : await seal(value, true); }
-    catch(e){ saveIndicator.textContent = '\u25cf not saved'; flashStorageError('write-failed'); return false; }
+    catch(e){ setSaveLabel('\u25cf not saved'); flashStorageError('write-failed'); return false; }
     if (storageMode === 'cloud') writeMirror(key, stored, ts, false);
     try{
       lastKnownValue[key] = value;
       await queueWrite(key, stored, ts);
       if (storageMode === 'cloud') markMirrorSynced(key, ts);
       lastStorageErrorCode = null;
-      saveIndicator.textContent = syncedLabel();
+      setSaveLabel(syncedLabel());
       hideStorageError();
       return true;
     }catch(e){
       lastStorageErrorCode = (e && e.code) || null;
-      saveIndicator.textContent = (storageMode === 'cloud' && mirrorAvailable) ? '\u25cf saved in browser, not yet Claude' : '\u25cf not saved';
+      setSaveLabel((storageMode === 'cloud' && mirrorAvailable) ? '\u25cf saved in browser, not yet Claude' : '\u25cf not saved');
       flashStorageError(storageMode === 'cloud' && mirrorAvailable ? 'write-failed-mirror' : 'write-failed');
       return false;
     }
@@ -2158,7 +2166,7 @@
     dataLoadFailed = states.some(st => st === 'error' || st === 'error-mirror');
     showingBrowserCopy = dataLoadFailed && states.some(st => st === 'error-mirror'); // show whatever the browser holds; saving stays paused
     if (dataLoadFailed){
-      saveIndicator.textContent = showingBrowserCopy ? '\u25cf showing browser copy' : '\u25cf not loaded';
+      setSaveLabel(showingBrowserCopy ? '\u25cf showing browser copy' : '\u25cf not loaded');
       flashStorageError(showingBrowserCopy ? 'load-failed-mirror' : 'load-failed');
       return;
     }
@@ -3677,7 +3685,7 @@
       if (!dataLoadFailed){
         dataReady = true;
         hideStorageError();
-        saveIndicator.textContent = syncedLabel();
+        setSaveLabel(syncedLabel());
         renderAllViews();
         startLiveSync();
       }
@@ -3708,7 +3716,7 @@
       entries = BASELINE_ENTRIES.map(e=> Object.assign({}, e));
       dataReady = true;
       hideAuth(); document.body.classList.remove('locked');
-      saveIndicator.textContent = '\u25cf not saving';
+      setSaveLabel('\u25cf not saving');
       flashStorageError('unavailable');
       renderAllViews();
       return;
