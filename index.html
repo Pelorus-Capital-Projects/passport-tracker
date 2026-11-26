@@ -683,14 +683,15 @@
   .backup-message.error{color:#8a3324;}
   .backup-message.success{color:var(--blue);}
 
-  /* Logged Entries open / closed */
+  /* Sections that open and close with + / − */
   .panel-head-actions{display:flex;gap:8px;align-items:center;}
   .collapse-btn{width:30px;height:30px;border:1px solid var(--blue);background:var(--blue-50);color:var(--blue);border-radius:var(--radius);
     font-family:var(--font);font-size:18px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
   .collapse-btn:hover{background:var(--blue);color:#fff;}
-  #entries-heading{cursor:pointer;}
-  #entries-panel.collapsed .panel-head{margin-bottom:0;}
-  #entries-panel.collapsed #entries-body, #entries-panel.collapsed #clear-entries-btn{display:none;}
+  .collapse-title{cursor:pointer;-webkit-user-select:none;user-select:none;}
+  [data-collapse].collapsed .panel-head{margin-bottom:0;}
+  [data-collapse].collapsed .collapse-body, [data-collapse].collapsed .panel-head-actions > :not(.collapse-btn){display:none;}
+  .sub-section{margin-top:4px;}
   /* Download PDF and Lock at the bottom of every page */
   .app-footer{margin-top:4px;}
   .footer-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;background:var(--panel);border:1px solid var(--panel-edge);
@@ -708,6 +709,27 @@
   .pw-form .pw-actions, .pw-form .backup-message{grid-column:1/-1;}
   .pw-form .backup-message{margin-top:0;}
   @media (max-width:640px){ .pw-form{grid-template-columns:1fr;} }
+
+  /* PDF viewer for the ID / passport documents */
+  .pdf-viewer{display:none;position:fixed;inset:0;z-index:150;background:#0e1d2f;flex-direction:column;
+    padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);}
+  .pdf-viewer.show{display:flex;}
+  .pdf-viewer-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--navy);color:#fff;
+    padding:10px max(14px, env(safe-area-inset-right,0px)) 10px max(14px, env(safe-area-inset-left,0px));font-family:var(--font);}
+  .pdf-viewer-name{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .pdf-viewer-name b{font-size:15px;font-weight:600;}
+  .pdf-viewer-name span{font-size:12px;color:var(--blue-100);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60vw;}
+  .pdf-viewer-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .pv-btn{font-family:var(--font);font-weight:600;font-size:15px;min-width:36px;height:36px;border-radius:var(--radius);cursor:pointer;
+    background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.35);padding:0 10px;}
+  .pv-btn.wide{font-size:12.5px;letter-spacing:0.03em;text-transform:uppercase;}
+  .pv-btn.primary{background:var(--accent);border-color:var(--accent);}
+  .pv-btn:disabled{opacity:0.45;cursor:default;}
+  .pv-zoom{font-family:var(--font);font-size:12.5px;min-width:44px;text-align:center;color:var(--blue-100);}
+  .pdf-viewer-pages{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .pdf-viewer-pages canvas{background:#fff;box-shadow:0 4px 18px rgba(0,0,0,0.4);max-width:none;display:block;}
+  .pdf-viewer-pages.zoomed{align-items:flex-start;}
+  .pdf-viewer-msg{color:#fff;font-family:var(--font);font-size:14.5px;line-height:1.55;max-width:46ch;text-align:center;margin:40px auto;}
 
   /* Background chart at night (decoration only, never holds any of your data) */
   #world-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;contain:strict;}
@@ -891,15 +913,15 @@
       </div>
     </div>
 
-    <div class="panel" id="entries-panel">
+    <div class="panel" id="entries-panel" data-collapse="entries">
       <div class="panel-head">
-        <h2 style="margin:0;" id="entries-heading">Logged Entries</h2>
+        <h2 class="collapse-title" id="entries-heading">Logged Entries</h2>
         <div class="panel-head-actions">
           <button class="edit-toggle" id="clear-entries-btn">Clear All Entries</button>
-          <button type="button" class="collapse-btn" id="entries-toggle" aria-expanded="true" aria-controls="entries-body" aria-label="Hide logged entries">−</button>
+          <button type="button" class="collapse-btn" id="entries-toggle" aria-expanded="true">−</button>
         </div>
       </div>
-      <div id="entries-body"><ul class="entry-list" id="entry-list"></ul></div>
+      <div class="collapse-body" id="entries-body"><ul class="entry-list" id="entry-list"></ul></div>
     </div>
   </section>
 
@@ -928,8 +950,10 @@
       </div>
       <div style="font-family:var(--font);font-size:10.5px;color:var(--ink-soft);margin:-8px 0 16px;">Transit days count toward both Inside SA and Outside SA totals, since a travel day is typically spent partly in each — so Inside + Outside may add up to more than the days elapsed.</div>
       <div class="threshold" id="threshold-box"></div>
-      <h2>Days Outside By Country</h2>
-      <ul class="country-list" id="country-list-totals"></ul>
+      <div class="sub-section" data-collapse="countries">
+        <div class="panel-head"><h2 class="collapse-title">Days Outside By Country</h2><div class="panel-head-actions"><button type="button" class="collapse-btn" aria-expanded="true">−</button></div></div>
+        <div class="collapse-body"><ul class="country-list" id="country-list-totals"></ul></div>
+      </div>
     </div>
 
     <div class="panel">
@@ -943,11 +967,12 @@
 
   <!-- PERSONAL INFO TAB -->
   <section class="tab-panel" id="tab-personal">
-    <div class="panel">
+    <div class="panel" data-collapse="profile">
       <div class="panel-head">
-        <h2 style="margin:0;">Personal Profile</h2>
-        <button class="edit-toggle" id="profile-edit-btn">Edit</button>
+        <h2 class="collapse-title">Personal Profile</h2>
+        <div class="panel-head-actions"><button class="edit-toggle" id="profile-edit-btn">Edit</button><button type="button" class="collapse-btn" aria-expanded="true">−</button></div>
       </div>
+      <div class="collapse-body">
       <div id="profile-view"></div>
       <form class="profile-form" id="profile-form">
         <div class="field span2">
@@ -988,10 +1013,12 @@
           <button type="button" id="profile-cancel-btn">Cancel</button>
         </div>
       </form>
+      </div>
     </div>
 
-    <div class="panel">
-      <h2>Documents on Record</h2>
+    <div class="panel" data-collapse="documents">
+      <div class="panel-head"><h2 class="collapse-title">Documents on Record</h2><div class="panel-head-actions"><button type="button" class="collapse-btn" aria-expanded="true">−</button></div></div>
+      <div class="collapse-body">
       <div class="doc-slot">
         <div class="doc-slot-main">
           <div class="doc-slot-title">ID Document</div>
@@ -999,6 +1026,7 @@
         </div>
         <div class="doc-actions">
           <button type="button" class="backup-btn" id="doc-upload-id">⬆ Upload PDF</button>
+          <button type="button" class="backup-btn secondary" id="doc-view-id" style="display:none;">View</button>
           <button type="button" class="backup-btn secondary" id="doc-download-id" style="display:none;">⬇ Download</button>
           <button type="button" class="doc-remove" id="doc-remove-id" style="display:none;">Remove</button>
         </div>
@@ -1010,6 +1038,7 @@
         </div>
         <div class="doc-actions">
           <button type="button" class="backup-btn" id="doc-upload-passport">⬆ Upload PDF</button>
+          <button type="button" class="backup-btn secondary" id="doc-view-passport" style="display:none;">View</button>
           <button type="button" class="backup-btn secondary" id="doc-download-passport" style="display:none;">⬇ Download</button>
           <button type="button" class="doc-remove" id="doc-remove-passport" style="display:none;">Remove</button>
         </div>
@@ -1017,10 +1046,12 @@
       <input type="file" id="doc-file-input" accept="application/pdf,.pdf" style="display:none;">
       <div class="backup-message" id="doc-message"></div>
       <div class="backup-help">PDFs up to 10 MB each, kept in your private area (only you can see them) and included in every Download Backup.</div>
+      </div>
     </div>
 
-    <div class="panel" id="security-panel" style="display:none;">
-      <h2>Login &amp; Security</h2>
+    <div class="panel" data-collapse="security" id="security-panel" style="display:none;">
+      <div class="panel-head"><h2 class="collapse-title">Login &amp; Security</h2><div class="panel-head-actions"><button type="button" class="collapse-btn" aria-expanded="true">−</button></div></div>
+      <div class="collapse-body">
       <div class="sec-grid">
         <div class="pv-field"><div class="pv-label">Signed in as</div><div class="pv-value" id="security-user"></div></div>
         <div class="pv-field"><div class="pv-label">Recovery codes</div><div class="pv-value" id="security-codes"></div></div>
@@ -1041,10 +1072,12 @@
         <div class="backup-message" id="pw-message" role="status"></div>
       </form>
       <div class="backup-help"><span id="security-scope"></span> Everything the app saves is encrypted and opens only with your password or a recovery code. It locks itself after 10 minutes without use.</div>
+      </div>
     </div>
 
-    <div class="panel">
-      <h2>Backup &amp; Saving</h2>
+    <div class="panel" data-collapse="backup">
+      <div class="panel-head"><h2 class="collapse-title">Backup &amp; Saving</h2><div class="panel-head-actions"><button type="button" class="collapse-btn" aria-expanded="true">−</button></div></div>
+      <div class="collapse-body">
       <div class="storage-status" id="storage-status">
         <div class="storage-status-title" id="storage-status-title">Checking where your data is saved…</div>
         <div class="storage-status-detail" id="storage-status-detail"></div>
@@ -1063,6 +1096,7 @@
       <div class="backup-meta" id="backup-meta"></div>
       <div class="backup-message" id="backup-message"></div>
       <div class="app-version" id="app-version"></div>
+      </div>
     </div>
   </section>
 
@@ -1074,6 +1108,20 @@
     <button type="button" class="bottom-lock-btn" id="lock-btn-bottom" style="display:none;">🔒 Lock</button>
   </div>
 </footer>
+
+<div class="pdf-viewer" id="pdf-viewer" role="dialog" aria-modal="true" aria-labelledby="pdf-viewer-title">
+  <div class="pdf-viewer-bar">
+    <div class="pdf-viewer-name"><b id="pdf-viewer-title">Document</b><span id="pdf-viewer-file"></span></div>
+    <div class="pdf-viewer-tools">
+      <button type="button" class="pv-btn" id="pdf-zoom-out" aria-label="Zoom out">−</button>
+      <span class="pv-zoom" id="pdf-zoom-label">Fit</span>
+      <button type="button" class="pv-btn" id="pdf-zoom-in" aria-label="Zoom in">+</button>
+      <button type="button" class="pv-btn wide" id="pdf-viewer-download">⬇ Download</button>
+      <button type="button" class="pv-btn wide primary" id="pdf-viewer-close">✕ Close</button>
+    </div>
+  </div>
+  <div class="pdf-viewer-pages" id="pdf-viewer-pages"></div>
+</div>
 
 <div class="modal-overlay" id="confirm-overlay">
   <div class="modal-card">
@@ -1189,23 +1237,30 @@
     });
   });
 
-  // ---------- Logged Entries: + / − to open or close the list (remembered on this device) ----------
-  const ENTRIES_UI_KEY = 'sa-days-tracker-ui::entries-closed';
-  const entriesPanel = document.getElementById('entries-panel');
-  const entriesToggle = document.getElementById('entries-toggle');
-  function setEntriesOpen(open, remember){
-    entriesPanel.classList.toggle('collapsed', !open);
-    entriesToggle.textContent = open ? '−' : '+';
-    entriesToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    entriesToggle.setAttribute('aria-label', open ? 'Hide logged entries' : 'Show logged entries');
-    if (remember){ try{ window.localStorage.setItem(ENTRIES_UI_KEY, open ? '0' : '1'); }catch(e){} }
-  }
-  let entriesStartOpen = true;
-  try{ entriesStartOpen = window.localStorage.getItem(ENTRIES_UI_KEY) !== '1'; }catch(e){}
-  setEntriesOpen(entriesStartOpen, false);
-  const flipEntries = ()=> setEntriesOpen(entriesPanel.classList.contains('collapsed'), true);
-  entriesToggle.addEventListener('click', flipEntries);
-  document.getElementById('entries-heading').addEventListener('click', flipEntries);
+  // ---------- Sections that open and close with + / − (remembered on this device) ----------
+  const UI_PREFIX = 'sa-days-tracker-ui::';
+  const sections = {};
+  document.querySelectorAll('[data-collapse]').forEach(box=>{
+    const key = box.dataset.collapse, btn = box.querySelector('.collapse-btn'), title = box.querySelector('.collapse-title');
+    const name = title ? title.textContent.trim().toLowerCase() : 'section';
+    const body = box.querySelector('.collapse-body');
+    if (body){ body.id = body.id || ('section-' + key); btn.setAttribute('aria-controls', body.id); }
+    const set = (open, remember)=>{
+      box.classList.toggle('collapsed', !open);
+      btn.textContent = open ? '\u2212' : '+';
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', (open ? 'Hide ' : 'Show ') + name);
+      if (remember){ try{ window.localStorage.setItem(UI_PREFIX + key + '-closed', open ? '0' : '1'); }catch(e){} }
+    };
+    let open = true;
+    try{ open = window.localStorage.getItem(UI_PREFIX + key + '-closed') !== '1'; }catch(e){}
+    set(open, false);
+    const flip = ()=> set(box.classList.contains('collapsed'), true);
+    btn.addEventListener('click', flip);
+    if (title) title.addEventListener('click', flip);
+    sections[key] = set;
+  });
+  function openSection(key){ if (sections[key]) sections[key](true, true); }
 
   // ---------- Editable heading ----------
   function renderTitle(){
@@ -1940,6 +1995,7 @@
     try{ closeEntryForm(); }catch(e){}
     try{ closeProfileForm(); }catch(e){}
     try{ closePdfScopeModal(); }catch(e){}
+    try{ closePdfViewer(); }catch(e){}
     if (confirmResolver) closeConfirm(false);
     undoToast.classList.remove('show'); undoAction = null;
     // drop everything decrypted from memory
@@ -2222,6 +2278,7 @@
       return;
     }
     if (confirmResolver){ closeConfirm(false); return; }
+    if (viewerEl.classList.contains('show')){ closePdfViewer(); return; }
     const fw = document.getElementById('entry-form-wrap');
     if (fw && fw.classList.contains('open')) document.getElementById('entry-cancel-btn').click();
   });
@@ -2374,6 +2431,7 @@
         : 'No PDF on record yet';
       info.classList.toggle('empty', !d);
       document.getElementById('doc-upload-' + kind).textContent = d ? '\u2b06 Replace PDF' : '\u2b06 Upload PDF';
+      document.getElementById('doc-view-' + kind).style.display = d ? '' : 'none';
       document.getElementById('doc-download-' + kind).style.display = d ? '' : 'none';
       document.getElementById('doc-remove-' + kind).style.display = d ? '' : 'none';
     });
@@ -2439,6 +2497,106 @@
       setDocMessage('Couldn\u2019t read the stored ' + docLabel(kind).toLowerCase() + ' \u2014 check your connection and try again.', true);
     }
   }
+  // ---- View a stored PDF inside the app (all pages, zoom). Uses PDF.js, loaded the first time it's needed.
+  const PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const ZOOMS = [1, 1.5, 2, 3];
+  const viewerEl = document.getElementById('pdf-viewer');
+  const viewerPages = document.getElementById('pdf-viewer-pages');
+  let pdfjsLoading = null, viewer = { doc: null, kind: null, zoom: 0, token: 0, trigger: null };
+  function loadPdfJs(){
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (pdfjsLoading) return pdfjsLoading;
+    pdfjsLoading = new Promise((resolve, reject)=>{
+      const sc = document.createElement('script'); sc.src = PDFJS_URL; sc.async = true;
+      sc.onload = ()=>{
+        const lib = window.pdfjsLib || window['pdfjs-dist/build/pdf'];
+        if (!lib){ pdfjsLoading = null; reject(new Error('viewer missing')); return; }
+        lib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+        resolve(lib);
+      };
+      sc.onerror = ()=>{ pdfjsLoading = null; sc.remove(); reject(new Error('viewer could not load')); };
+      document.head.appendChild(sc);
+    });
+    return pdfjsLoading;
+  }
+  function viewerMessage(text){
+    viewerPages.innerHTML = '';
+    const m = document.createElement('p'); m.className = 'pdf-viewer-msg'; m.id = 'pdf-viewer-msg'; m.textContent = text; viewerPages.appendChild(m);
+  }
+  function setZoomButtons(){
+    document.getElementById('pdf-zoom-label').textContent = viewer.zoom === 0 ? 'Fit' : Math.round(ZOOMS[viewer.zoom] * 100) + '%';
+    document.getElementById('pdf-zoom-out').disabled = !viewer.doc || viewer.zoom === 0;
+    document.getElementById('pdf-zoom-in').disabled = !viewer.doc || viewer.zoom === ZOOMS.length - 1;
+  }
+  async function renderViewerPages(){
+    const token = ++viewer.token, pdf = viewer.doc; if (!pdf) return;
+    const avail = Math.max(200, Math.min(viewerPages.clientWidth - 32, 860));   // Fit = page width, up to a comfortable reading size
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    viewerPages.classList.toggle('zoomed', viewer.zoom > 0);
+    const canvases = [];
+    for (let n = 1; n <= pdf.numPages; n++){
+      const page = await pdf.getPage(n); if (token !== viewer.token) return;
+      const base = page.getViewport({ scale: 1 });
+      const cssScale = (avail / base.width) * ZOOMS[viewer.zoom];
+      let px = cssScale * dpr;
+      const maxPixels = 12e6;                              // stay inside phone canvas limits
+      if (base.width * base.height * px * px > maxPixels) px = Math.sqrt(maxPixels / (base.width * base.height));
+      const vp = page.getViewport({ scale: px });
+      const cv = document.createElement('canvas');
+      cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
+      cv.style.width = Math.floor(base.width * cssScale) + 'px'; cv.style.height = Math.floor(base.height * cssScale) + 'px';
+      cv.setAttribute('aria-label', 'Page ' + n + ' of ' + pdf.numPages);
+      await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+      if (token !== viewer.token) return;
+      canvases.push(cv);
+      if (n === 1){ viewerPages.innerHTML = ''; }
+      viewerPages.appendChild(cv);
+    }
+  }
+  function clearViewerCanvases(){ viewerPages.querySelectorAll('canvas').forEach(c=> { c.width = 0; c.height = 0; }); viewerPages.innerHTML = ''; }
+  function closePdfViewer(){
+    viewer.token++;
+    if (viewer.doc){ try{ viewer.doc.destroy(); }catch(e){} }
+    viewer.doc = null; viewer.kind = null;
+    clearViewerCanvases();
+    viewerEl.classList.remove('show');
+    if (viewer.trigger && document.body.contains(viewer.trigger)){ try{ viewer.trigger.focus({ preventScroll: true }); }catch(e){} }
+    viewer.trigger = null;
+  }
+  async function viewDocument(kind, trigger){
+    const d = documents.find(x=> x.kind === kind); if (!d) return;
+    viewer.token++; viewer.kind = kind; viewer.zoom = 0; viewer.trigger = trigger || null;
+    if (viewer.doc){ try{ viewer.doc.destroy(); }catch(e){} viewer.doc = null; }
+    document.getElementById('pdf-viewer-title').textContent = docLabel(kind);
+    document.getElementById('pdf-viewer-file').textContent = d.name;
+    viewerEl.classList.add('show'); setZoomButtons();
+    viewerMessage('Opening ' + docLabel(kind).toLowerCase() + '…');
+    document.getElementById('pdf-viewer-close').focus({ preventScroll: true });
+    const token = viewer.token;
+    let bytes;
+    try{ bytes = base64ToBytes(await readDocBase64(d)); }
+    catch(e){ if (token === viewer.token) viewerMessage('Couldn’t read the stored ' + docLabel(kind).toLowerCase() + ' — check your connection and try again.'); return; }
+    let lib;
+    try{ lib = await loadPdfJs(); }
+    catch(e){ if (token === viewer.token) viewerMessage('The viewer needs an internet connection the first time it opens. Use Download to open the PDF on this device instead.'); return; }
+    if (token !== viewer.token) return;
+    try{
+      const pdf = await lib.getDocument({ data: bytes, isEvalSupported: false, disableFontFace: false }).promise;
+      if (token !== viewer.token){ pdf.destroy(); return; }
+      viewer.doc = pdf; setZoomButtons();
+      await renderViewerPages();
+    }catch(e){
+      if (token === viewer.token) viewerMessage('This PDF couldn’t be shown here. Use Download to open it in another app.');
+    }
+  }
+  document.getElementById('pdf-viewer-close').addEventListener('click', closePdfViewer);
+  document.getElementById('pdf-viewer-download').addEventListener('click', ()=>{ if (viewer.kind) downloadDocument(viewer.kind); });
+  document.getElementById('pdf-zoom-in').addEventListener('click', ()=>{ if (viewer.doc && viewer.zoom < ZOOMS.length - 1){ viewer.zoom++; setZoomButtons(); renderViewerPages(); } });
+  document.getElementById('pdf-zoom-out').addEventListener('click', ()=>{ if (viewer.doc && viewer.zoom > 0){ viewer.zoom--; setZoomButtons(); renderViewerPages(); } });
+  let viewerResize = 0;
+  window.addEventListener('resize', ()=>{ if (!viewer.doc) return; clearTimeout(viewerResize); viewerResize = setTimeout(renderViewerPages, 250); });
+
   async function removeDocument(kind){
     const d = documents.find(x=> x.kind === kind); if (!d) return;
     const ok = await confirmDialog('Remove the ' + docLabel(kind).toLowerCase() + ' on record (' + d.name + ')?\n\nDownload a copy first if you don\u2019t have one elsewhere.', 'Remove', 'Remove ' + docLabel(kind));
@@ -2454,6 +2612,7 @@
       pendingDocKind = kind;
       document.getElementById('doc-file-input').click();
     });
+    document.getElementById('doc-view-' + kind).addEventListener('click', (e)=> viewDocument(kind, e.currentTarget));
     document.getElementById('doc-download-' + kind).addEventListener('click', ()=> downloadDocument(kind));
     document.getElementById('doc-remove-' + kind).addEventListener('click', ()=> removeDocument(kind));
   });
@@ -3565,6 +3724,7 @@
   saveIndicator.addEventListener('click', ()=>{
     if (storageMode === 'cloud') return;
     document.querySelector('.tab-btn[data-tab="personal"]').click();
+    openSection('backup');
     document.getElementById('storage-status').scrollIntoView({ behavior:'smooth', block:'center' });
   });
 
