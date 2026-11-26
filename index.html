@@ -604,6 +604,8 @@
   }
   .storage-status.ok{border-left-color:var(--blue);background:var(--blue-50);}
   .storage-status.warn{border-left-color:var(--blue-deep);background:var(--blue-100);}
+  /* where-it's-saved note: only shown when something needs attention (e.g. opened as a file, or storage switched off) */
+  .storage-status.ok, .storage-status.neutral{display:none;}
   .storage-status-title{font-family:var(--font);font-weight:600;font-size:14px;color:var(--navy);margin-bottom:4px;}
   .storage-status-detail{font-size:12.5px;line-height:1.5;color:var(--ink-soft);}
   .backup-actions{display:flex;gap:10px;flex-wrap:wrap;}
