@@ -403,17 +403,6 @@
   .stat-card .num{font-family:var(--font);font-size:32px;font-weight:700;line-height:1;}
   .stat-card .lbl{font-family:var(--font);font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;margin-top:6px;opacity:0.9;}
 
-  .threshold{
-    padding:12px 14px;
-    background:var(--blue-50);
-    border-left:3px solid var(--blue);
-    font-family:var(--font);
-    font-size:11.5px;
-    line-height:1.6;
-    color:var(--ink);
-    margin-bottom:18px;
-  }
-  .threshold b{color:var(--navy);}
 
   .empty-state-banner{
     display:none;
@@ -447,10 +436,6 @@
   .pdf-btn:hover{background:#0c2540;}
   .pdf-btn:disabled{opacity:0.5;cursor:wait;}
 
-  .disclaimer{
-    margin-top:18px;font-family:var(--font);font-size:10.5px;
-    color:var(--ink-soft);line-height:1.6;border-top:1px solid var(--line);padding-top:12px;
-  }
 
   /* Personal Info tab */
   .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
@@ -948,8 +933,6 @@
           <div class="lbl">Days In Transit</div>
         </div>
       </div>
-      <div style="font-family:var(--font);font-size:10.5px;color:var(--ink-soft);margin:-8px 0 16px;">Transit days count toward both Inside SA and Outside SA totals, since a travel day is typically spent partly in each — so Inside + Outside may add up to more than the days elapsed.</div>
-      <div class="threshold" id="threshold-box"></div>
       <div class="sub-section" data-collapse="countries">
         <div class="panel-head"><h2 class="collapse-title">Days Outside By Country</h2><div class="panel-head-actions"><button type="button" class="collapse-btn" aria-expanded="true">−</button></div></div>
         <div class="collapse-body"><ul class="country-list" id="country-list-totals"></ul></div>
@@ -959,9 +942,6 @@
     <div class="panel">
       <h2>Export</h2>
       <button class="pdf-btn" id="pdf-btn">Download PDF Summary</button>
-      <div class="disclaimer">
-        Day counts follow the SARS physical presence test convention (day of arrival and day of departure both count as a day present in SA). Transit days are shown separately since treatment can vary by circumstance. This tool is for personal record-keeping only — it is not tax or immigration advice. Confirm your residency position with a registered tax practitioner.
-      </div>
     </div>
   </section>
 
@@ -3290,18 +3270,6 @@
     document.getElementById('stat-inside').textContent = tally ? tally.inside : 'n/a';
     document.getElementById('stat-outside').textContent = tally ? tally.outside : 'n/a';
     document.getElementById('stat-transit').textContent = tally ? tally.transit : 'n/a';
-
-    const box = document.getElementById('threshold-box');
-    const today = toDateOnly(new Date());
-    if (!tally){
-      box.innerHTML = '<b>Tax year has not started yet.</b>';
-    } else {
-      const remaining = Math.max(0, 91 - tally.inside);
-      box.innerHTML =
-        'Physical presence test (91-day threshold): <b>'+tally.inside+' / 91</b> days inside SA so far.<br>' +
-        (tally.inside >= 91 ? 'Threshold for this tax year has been met.' : remaining + ' more day'+(remaining===1?'':'s')+' inside SA needed to reach 91.') +
-        (range.end > today ? '<br>Year in progress — figures as at today.' : '<br>Year complete.');
-    }
 
     const countryList = document.getElementById('country-list-totals');
     if (!tally || !Object.keys(tally.byCountry).length){
